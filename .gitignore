@@ -19,3 +19,5 @@ env/
 venv/
 ENV/
 *.nc
+03_Stochastic_Mortality_Modeling/data/*
+.ipynb_checkpoints/
