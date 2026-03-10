@@ -1,4 +1,4 @@
-# Zurich Extreme Precipitation Analysis (EVT)
+# Project 02: Climate Risk Assessment - Extreme Value Theory (EVT)
 
 This project applies Extreme Value Theory (EVT) to 44 years of ERA5 climate reanalysis data to assess flood risk and "Black Swan" precipitation events in the Zurich metropolitan area.
 

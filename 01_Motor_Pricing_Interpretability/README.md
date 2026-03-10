@@ -1,4 +1,4 @@
-# Actuarial Pricing Analysis: GLM vs. XGBoost vs. Deep Learning 🚗💨
+# Project 01: Motor Insurance Pricing - GLM vs. Machine Learning
 
 This repository explores modern insurance pricing techniques using the French Motor Third-Party Liability (MTPL) dataset. The project compares traditional actuarial models with Machine Learning and Deep Learning approaches.
 
