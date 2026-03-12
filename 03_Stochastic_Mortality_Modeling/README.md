@@ -7,35 +7,37 @@ This project implements the **Lee-Carter model** and **Deep Learning extensions*
 - **Baseline Methodology:** Parameter estimation via **Singular Value Decomposition (SVD)** with strict identifiability constraints ($\sum \beta_x = 1$).
 - **Forecasting:** Stochastic projection of the mortality index ($\kappa_t$) using a **Random Walk with Drift (RWD)**.
 - **Machine Learning:** Implementation of a **Deep Lee-Carter** (Neural Network) for non-linear mortality smoothing (graduation).
-- **Data Engineering:** Age-clipping at 95 years to ensure statistical robustness and eliminate centenarian noise.
+- **Risk Management:** Longevity Stress Testing (SCR calculation) and out-of-time Backtesting.
 
 ## Visual Insights & Forecasting
 
 ### 1. Stochastic Projection of $\kappa_t$
-The mortality index $\kappa_t$ is projected to 2050. The Fan Chart captures the inherent uncertainty of longevity improvements, essential for calculating Solvency Capital Requirements (SCR). The model successfully absorbs the 2020-2022 COVID-19 shock as a transitory deviation from the secular trend.
+The mortality index $\kappa_t$ is projected to 2050. The Fan Chart captures the inherent uncertainty of longevity improvements, essential for calculating Solvency Capital Requirements (SCR).
 
 ![kt Forecast](reports/figures/04_kt_forecast.png)
 
-### 2. Life Expectancy at Birth ($e_0$)
-Transforming stochastic indices into years of life, we project Swiss life expectancy to reach ~87.5 years by 2050. The 95% confidence interval highlights the "Longevity Risk" - the financial risk that policyholders live longer than the mean expectation.
-
-![e0 Forecast](reports/figures/05_e0_forecast.png)
-
-### 3. Deep Learning Graduation (Neural Smoothing)
-To address the limitations of the linear SVD approach, a **Multi-Layer Perceptron (MLP)** was trained to map $(Age, Year) \rightarrow \ln(m_{x,t})$. 
-- **Regularization:** Employed **Dropout (0.1)** and **Early Stopping** to prevent overfitting and ensure the network acts as a robust universal interpolator.
-- **Result:** The Neural Surface (right) effectively "repairs" the raw data noise, especially in low-exposure cohorts (young ages), providing a superior basis for mortality table graduation.
+### 2. Deep Learning Graduation (Neural Smoothing)
+A **Multi-Layer Perceptron (MLP)** was trained to map $(Age, Year) \rightarrow \ln(m_{x,t})$, acting as a robust universal interpolator to "repair" raw data noise.
 
 ![Neural vs Raw](reports/figures/07_nn_vs_raw.png)
 
-## Model Robustness & "Actuarial Challenges"
-- **Identifiability:** SVD parameters are normalized to ensure unique solutions, avoiding arbitrary scaling.
-- **Smoothing vs. Noise:** The Deep LC model serves as a non-parametric smoother, capturing cohort-specific interactions that traditional 1-factor models might miss.
-- **Tail Risk:** Data is truncated at 95 to avoid the "closure problem"; for practical reinsurance pricing, a parametric law (e.g., Kannisto) would be used to extrapolate the 95+ tail.
+### 3. Longevity Stress Testing & Backtesting
+- **Stress Test:** Quantified a 1-in-200 year longevity shock on a life annuity portfolio (65-year-old male), resulting in a **3.94% Longevity SCR loading**.
+- **Model Validation:** Out-of-time backtesting (2011-2024) yielded an **RMSE of 0.1682** for Age 75, identifying a deceleration in longevity trends.
+
+![Longevity Stress Test](reports/figures/08_longevity_stress_test.png)
+![Backtesting](reports/figures/09_backtesting_age75.png)
+
+## Future Work & Model Evolution (Next Steps)
+To further align this framework with institutional **Model Validation** and **ALM** standards, the following steps are planned:
+1. **Comparative Backtesting:** Evaluate the Deep Lee-Carter (Neural Network) performance against the SVD baseline in the 2011-2024 test period to quantify the "ML lift".
+2. **Sensitivity Analysis (Greeks):** Implement a sensitivity matrix to assess the impact of interest rate fluctuations on Longevity SCR (Asset-Liability Management integration).
+3. **Model Interpretability:** Apply SHAP values to the Deep LC model to identify specific age-cohort drivers of mortality improvement.
+4. **Cause-of-Death Decomposition:** Transition from a general mortality model to a cause-specific framework to better capture biometrical risk drivers.
 
 ## Current Status
-- [x] Data processing and Lexis surface visualization.
-- [x] SVD-based Lee-Carter implementation and residual diagnostics.
-- [x] Stochastic forecasting (RWD) and Life Expectancy simulations.
+- [x] SVD-based Lee-Carter implementation and stochastic forecasting.
 - [x] Neural Network (Deep LC) implementation for mortality graduation.
-- [ ] **Next Step:** Impact of Mortality Shocks on Solvency II Capital (Simulation).
+- [x] Longevity Stress Testing (SCR calculation).
+- [x] Baseline Model Validation (Backtesting).
+- [ ] **Next Step:** Comparative Backtesting (SVD vs. Deep LC).
