@@ -1,43 +1,44 @@
-# Project 03: Stochastic Mortality Modeling (Switzerland)
+# Project 03: Longevity Risk & Advanced Model Validation (Switzerland)
 
-This project implements the **Lee-Carter model** and **Deep Learning extensions** to analyze and forecast mortality dynamics for the Swiss population (1950-2024). Modeling mortality improvement is a core task for Life & Health (L&H) Reinsurance, specifically for quantifying **Longevity Risk** and pricing annuities.
+This project implements the **Lee-Carter model** and **Deep Learning architectures** (MLP, Hybrid, and LSTM) to analyze and forecast mortality dynamics for the Swiss population (1950-2024). This framework is designed to address **Longevity Risk**—a critical factor in Life & Health (L&H) Reinsurance for pricing annuities and managing Solvency II capital requirements.
 
 ## Technical Overview
 - **Data Source:** Human Mortality Database (HMD) - Switzerland (CHE) 1x1 death rates.
-- **Baseline Methodology:** Parameter estimation via **Singular Value Decomposition (SVD)** with strict identifiability constraints ($\sum \beta_x = 1$).
-- **Forecasting:** Stochastic projection of the mortality index ($\kappa_t$) using a **Random Walk with Drift (RWD)**.
-- **Machine Learning:** Implementation of a **Deep Lee-Carter** (Neural Network) for non-linear mortality smoothing (graduation).
-- **Risk Management:** Longevity Stress Testing (SCR calculation) and out-of-time Backtesting.
+- **Actuarial Baseline:** Parameter estimation via **Singular Value Decomposition (SVD)** and **Random Walk with Drift (RWD)**.
+- **Deep Learning Architectures:**
+    - **Multi-Layer Perceptron (MLP):** Tested as a universal interpolator for mortality graduation.
+    - **Hybrid Residual Model:** A "corrector" network trained to learn SVD reconstruction errors.
+    - **LSTM (Long Short-Term Memory):** A recurrent architecture designed to capture "memory" in mortality index trends.
+- **Robustness Protocol:** All Deep Learning results are **averaged over 10 independent iterations** to ensure statistical stability and eliminate initialization bias.
 
-## Visual Insights & Forecasting
+## Key Findings & Benchmarking
 
-### 1. Stochastic Projection of $\kappa_t$
-The mortality index $\kappa_t$ is projected to 2050. The Fan Chart captures the inherent uncertainty of longevity improvements, essential for calculating Solvency Capital Requirements (SCR).
-
-![kt Forecast](reports/figures/04_kt_forecast.png)
-
-### 2. Deep Learning Graduation (Neural Smoothing)
-A **Multi-Layer Perceptron (MLP)** was trained to map $(Age, Year) \rightarrow \ln(m_{x,t})$, acting as a robust universal interpolator to "repair" raw data noise.
-
-![Neural vs Raw](reports/figures/07_nn_vs_raw.png)
-
-### 3. Longevity Stress Testing & Backtesting
-- **Stress Test:** Quantified a 1-in-200 year longevity shock on a life annuity portfolio (65-year-old male), resulting in a **3.94% Longevity SCR loading**.
-- **Model Validation:** Out-of-time backtesting (2011-2024) yielded an **RMSE of 0.1682** for Age 75, identifying a deceleration in longevity trends.
+### 1. Longevity Stress Testing (SCR)
+We quantified a **1-in-200 year longevity shock** (99.5th percentile) on a life annuity portfolio for a 65-year-old male. This resulted in a **3.94% Longevity SCR loading**, providing a concrete metric for capital buffering.
 
 ![Longevity Stress Test](reports/figures/08_longevity_stress_test.png)
-![Backtesting](reports/figures/09_backtesting_age75.png)
 
-## Future Work & Model Evolution (Next Steps)
-To further align this framework with institutional **Model Validation** and **ALM** standards, the following steps are planned:
-1. **Comparative Backtesting:** Evaluate the Deep Lee-Carter (Neural Network) performance against the SVD baseline in the 2011-2024 test period to quantify the "ML lift".
-2. **Sensitivity Analysis (Greeks):** Implement a sensitivity matrix to assess the impact of interest rate fluctuations on Longevity SCR (Asset-Liability Management integration).
-3. **Model Interpretability:** Apply SHAP values to the Deep LC model to identify specific age-cohort drivers of mortality improvement.
-4. **Cause-of-Death Decomposition:** Transition from a general mortality model to a cause-specific framework to better capture biometrical risk drivers.
+### 2. The Mortality Derby: Comparative Backtesting
+To validate the models, we performed an out-of-time backtest (**2011–2024**). The results highlight a significant performance gap between classical actuarial methods and advanced sequence modeling:
 
-## Current Status
-- [x] SVD-based Lee-Carter implementation and stochastic forecasting.
-- [x] Neural Network (Deep LC) implementation for mortality graduation.
+| Model | Architecture | RMSE (Age 75) | Performance vs Baseline |
+| :--- | :--- | :--- | :--- |
+| **SVD Lee-Carter** | Actuarial Baseline (Linear) | 0.1682 | Reference |
+| **Pure MLP** | Neural Network (Static) | 1.0236 | -508% (Failure) |
+| **Hybrid Model** | SVD + Neural Corrector | 0.1526 | +9.3% |
+| **LSTM Champion** | **Recurrent Sequence Model** | **0.0508** | **+69.8% (Champion)** |
+
+**Insight:** The LSTM model effectively captured the **deceleration of longevity improvements** in Switzerland, which the linear SVD model overestimated. 
+
+![Final Backtest Comparison](reports/figures/12_final_backtest_champion.png)
+
+## Strategic Conclusions
+1. **Sequence Memory Matters:** Mortality trends are non-linear; LSTM networks outperform classical methods by capturing temporal dependencies that SVD-based RWD ignores.
+2. **Model Robustness:** Pure Deep Learning (MLP) fails in extrapolation without an inductive bias. The Hybrid and LSTM approaches prove that **integrating actuarial logic with AI** is the only path to institutional-grade reliability.
+
+## Future Work & Next Steps
+- [x] SVD-based Lee-Carter and stochastic forecasting.
 - [x] Longevity Stress Testing (SCR calculation).
-- [x] Baseline Model Validation (Backtesting).
-- [ ] **Next Step:** Comparative Backtesting (SVD vs. Deep LC).
+- [x] **Robust Comparative Backtesting (MLP vs Hybrid vs LSTM).**
+- [ ] **Project 04: Coherent Mortality Modeling (Li-Lee Model):** Expanding the framework to multi-population modeling (e.g., Switzerland + Sweden) to ensure long-term trend consistency and manage Basis Risk.
+- [ ] **ALM Integration:** Sensitivity analysis of SCR to interest rate fluctuations.
