@@ -47,7 +47,9 @@ The framework generates a full probability distribution for the 2050 mortality i
 
 ---
 ## Contact & Author
-**Author:** Davide Rindori  
-**Field:** Actuarial Science / Machine Learning  
-**LinkedIn:** https://www.linkedin.com/in/davide-rindori/
-**Context:** This project was developed as a benchmark study for modernizing longevity risk frameworks in high-income markets.
+
+**Author:** [Davide Rindori](https://www.linkedin.com/in/davide-rindori/)  
+**Role:** Actuarial Data Scientist / Risk Modeller  
+**Expertise:** Machine Learning for Life Reinsurance & Longevity Risk  
+
+*This project was developed as a benchmark study for modernizing longevity risk frameworks in high-income markets, focusing on the integration of Deep Learning with regulatory capital standards.*
