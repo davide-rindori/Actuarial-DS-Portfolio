@@ -1,44 +1,47 @@
-# Project 03: Longevity Risk & Advanced Model Validation (Switzerland)
+# Project 03: Longevity Risk & Deep Learning Uncertainty (Switzerland)
 
-This project implements the **Lee-Carter model** and **Deep Learning architectures** (MLP, Hybrid, and LSTM) to analyze and forecast mortality dynamics for the Swiss population (1950-2024). This framework is designed to address **Longevity Risk**—a critical factor in Life & Health (L&H) Reinsurance for pricing annuities and managing Solvency II capital requirements.
+![Project Status](https://img.shields.io/badge/Status-Complete-green)
+![Target Industry](https://img.shields.io/badge/Industry-Reinsurance-blue)
 
-## Technical Overview
-- **Data Source:** Human Mortality Database (HMD) - Switzerland (CHE) 1x1 death rates.
-- **Actuarial Baseline:** Parameter estimation via **Singular Value Decomposition (SVD)** and **Random Walk with Drift (RWD)**.
-- **Deep Learning Architectures:**
-    - **Multi-Layer Perceptron (MLP):** Tested as a universal interpolator for mortality graduation.
-    - **Hybrid Residual Model:** A "corrector" network trained to learn SVD reconstruction errors.
-    - **LSTM (Long Short-Term Memory):** A recurrent architecture designed to capture "memory" in mortality index trends.
-- **Robustness Protocol:** All Deep Learning results are **averaged over 10 independent iterations** to ensure statistical stability and eliminate initialization bias.
+This project represents a state-of-the-art approach to **Longevity Risk Management** for the Swiss population. By replacing traditional linear extrapolations with **Probabilistic Deep Learning (LSTM + MC Dropout)**, we provide a solution that identifies trend regime changes and quantifies the uncertainty necessary for Solvency II capital calculations.
 
-## Visual Insights & Forecasting
+## Key Technical Features
+* **Sequence Modeling:** LSTM architecture with a 10-year memory window.
+* **Bayesian Approximation:** Uncertainty quantification via Monte Carlo Dropout (100 simulations).
+* **Actuarial Backtesting:** Rigorous 2011-2024 validation against SVD-based Lee-Carter benchmarks.
+* **Diagnostic Deep-Dive:** Residual Heatmap analysis to detect hidden cohort effects and systematic biases.
 
-### 1. Longevity Stress Testing (SCR)
-We quantified a **1-in-200 year longevity shock** (99.5th percentile) on a life annuity portfolio for a 65-year-old male. This resulted in a **3.94% Longevity SCR loading**, providing a concrete metric for capital buffering.
+## Visual Insights
 
-![Longevity Stress Test](reports/figures/08_longevity_stress_test.png)
+### 1. The "Mortality Derby" (Backtesting Age 75)
+We validated our models on the most critical cohort for life insurers. The LSTM outclassed classical models by adapting to the recent slowdown in mortality improvements, avoiding the over-optimism of linear extrapolations.
 
-### 2. The Mortality Derby: Comparative Backtesting
-To validate the models, we performed an out-of-time backtest (**2011–2024**) for Age 75. The results highlight a significant performance gap between classical actuarial methods and advanced sequence modeling:
+| Model | RMSE (2011-2024) | Strategic Advantage |
+| :--- | :--- | :--- |
+| **SVD Lee-Carter** | 0.1682 | Simple but rigid; misses regime changes. |
+| **LSTM Champion** | **0.1115** | **Dynamic; captures decadal momentum.** |
 
-| Model | Architecture | RMSE (Age 75) | Performance vs Baseline |
-| :--- | :--- | :--- | :--- |
-| **SVD Lee-Carter** | Actuarial Baseline (Linear) | 0.1682 | Reference |
-| **Pure MLP** | Neural Network (Static) | 0.8957 | Failure (Overfitting) |
-| **Hybrid Model** | SVD + Neural Corrector | 0.1484 | +11.8% Improvement |
-| **LSTM Champion** | **Recurrent Sequence Model** | **0.0849** | **+49.5% Improvement** |
+![Backtest Comparison](reports/figures/09_final_comparison.png)
 
-**Insight:** The LSTM model effectively captured the **deceleration of longevity improvements** in Switzerland, which the linear SVD baseline significantly overestimated.
+### 2. Neural Fan Chart & Model Risk
+Using MC Dropout, we generated a **95% Confidence Interval** for the mortality index up to 2050. This "Fan Chart" is the neural equivalent of a stochastic Lee-Carter, providing a data-driven basis for internal risk models and capital buffering.
 
-![Final Backtest Comparison](reports/figures/09_final_comparison.png)
+![Uncertainty Fan Chart](reports/figures/10_lstm_uncertainty_fan.png)
 
-## Strategic Conclusions
-1. **Sequence Memory Matters:** Mortality trends are non-linear; LSTM networks outperform classical methods by capturing temporal dependencies that SVD-based RWD ignores.
-2. **Model Robustness:** Pure Deep Learning (MLP) fails in extrapolation without an inductive bias. The Hybrid and LSTM approaches prove that **integrating actuarial logic with AI** is the only path to institutional-grade reliability.
+### 3. Model Integrity: Residual Diagnostics
+To ensure the model is "Reinsurance-Ready," we produced a Residual Heatmap. The absence of structured red/blue patterns confirms that the LSTM has successfully extracted all predictive signals, leaving only irreducible noise.
 
-## Future Work & Next Steps
-- [x] SVD-based Lee-Carter implementation and stochastic forecasting.
-- [x] Longevity Stress Testing (SCR calculation).
-- [x] Robust Comparative Backtesting (MLP vs Hybrid vs LSTM).
-- [ ] **Model Uncertainty (Next Step):** Implementation of **Monte Carlo Dropout** to quantify epistemic uncertainty and generate neural confidence intervals for the LSTM model.
-- [ ] **Model Interpretability:** Integration of **SHAP values** or Gradient-based analysis to identify the temporal drivers of the predicted mortality deceleration.
+![Residual Heatmap](reports/figures/12_residual_heatmap.png)
+
+### 4. Business Value: Survival Corridors ($tP_x$)
+The final output translates neural predictions into survival probabilities. For a 65-year-old in 2025, we provide the median path and the 95% risk corridor for surviving to age 90, directly supporting longevity swap pricing.
+
+![Survival Uncertainty](reports/figures/11_survival_uncertainty_65.png)
+
+## Why this matters for Swiss Re
+1. **Adaptive Pricing:** Prevents premium leakage by identifying when mortality improvement trends deviate from historical averages.
+2. **Regulatory Compliance:** Moves beyond "Black Box AI" by providing quantified uncertainty (MC Dropout), a prerequisite for internal model approval.
+3. **Biological Consistency:** Validated through residual analysis to ensure smooth graduation across the age-grid.
+
+---
+**Next Research Phase:** Li-Lee Multi-population modeling to address Basis Risk in cross-border longevity treaties.
