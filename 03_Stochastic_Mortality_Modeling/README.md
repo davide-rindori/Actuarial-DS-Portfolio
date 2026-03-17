@@ -45,6 +45,12 @@ The framework generates a full probability distribution for the 2050 mortality i
 * `03_model_diagnostics_validation.ipynb`: Residual Heatmaps and Actuarial Stress Testing.
 * `04_stochastic_projections_capital_metrics.ipynb`: MC Dropout, SST calibration, and Risk Reporting.
 
+## License & Citation
+This project is licensed under the **MIT License**.
+
+**Citation:** If you use this framework in your research or business projects, please cite:  
+*Davide Rindori, Neural Longevity Framework (2026).*
+
 ---
 ## Contact & Author
 
