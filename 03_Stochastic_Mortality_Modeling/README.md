@@ -1,11 +1,10 @@
-# Stochastic Longevity Forecasting: A Neural Approach to SST Capital Calibration
+# Project 03: Stochastic Longevity Forecasting: A Neural Approach to SST Capital Calibration
 
 ![Project Status](https://img.shields.io/badge/Status-Complete-green)
 ![Target Industry](https://img.shields.io/badge/Industry-Life_Reinsurance-blue)
 ![Regulatory Focus](https://img.shields.io/badge/Compliance-SST--Solvency_II-red)
 
 **Author:** [Davide Rindori, PhD](https://www.linkedin.com/in/davide-rindori/)  
-**Technical White Paper:** [Download PDF (Overleaf/Main.pdf)](#)  
 **Research Goal:** Modernizing Longevity Risk frameworks for high-income markets through Deep Learning and Regulatory Capital standards.
 
 ---
