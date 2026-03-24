@@ -10,8 +10,8 @@ Welcome to my professional portfolio. This repository showcases a collection of 
 ### 3. [Stochastic Longevity Forecasting: A Neural Approach to SST Capital Calibration](./03_Stochastic_Mortality_Modeling)
 **Focus:** *Life & Health Reinsurance, LSTM Networks, Swiss Solvency Test (SST)*
 * Developed a framework for Swiss mortality forecasting, replacing linear drift assumptions with **LSTM-based sequential modeling**.
-* Identified a **50-point "Prudence Gap"** and quantified Model Risk by benchmarking neural projections against traditional Lee-Carter benchmarks.
-* Calibrated the **Longevity SCR Shock (ES 99%) at 3.48** via Monte Carlo Dropout, ensuring robust tail-risk estimation for regulatory capital compliance.
+* Identified a **38.5-point "Prudence Gap"** and quantified Model Risk by benchmarking neural projections against traditional Lee-Carter benchmarks.
+* Calibrated the **Longevity SCR Shock (ES 99%) at 3.90** via Monte Carlo Dropout, ensuring robust tail-risk estimation for regulatory capital compliance.
 * Validated architectural stability through a comprehensive sensitivity analysis of temporal windows and neural hyperparameters.
 
 ### 2. [Zurich Extreme Precipitation Analysis (EVT)](./02_Climate_Risk_EVT)

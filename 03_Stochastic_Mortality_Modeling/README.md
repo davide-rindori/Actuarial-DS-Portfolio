@@ -14,9 +14,9 @@ This repository implements a **State-of-the-Art Longevity Risk Framework** desig
 
 ## Key Technical Features
 * **Sequential Intelligence:** LSTM-based modeling with a 10-year look-back window to internalize decadal mortality momentum and structural plateaus.
-* **Bayesian Uncertainty:** Quantification of **Epistemic Risk** through Monte Carlo Dropout, generating 100 stochastic forward passes for robust tail-risk estimation.
-* **Regulatory Calibration:** Automated derivation of **Expected Shortfall (ES 99%)** and **Value-at-Risk (VaR)** for Longevity SCR shock calibration.
-* **Model Robustness:** Implementation of a sensitivity analysis pipeline to ensure architectural stability across hyperparameter variations.
+* **Bayesian Uncertainty:** Quantification of **Epistemic Risk** through Monte Carlo Dropout (MCD), generating 100 stochastic forward passes to capture non-symmetric tail risks.
+* **Regulatory Calibration:** Automated derivation of **Expected Shortfall (ES 99%)** for Longevity SCR shock calibration, aligning with FINMA requirements.
+* **Model Robustness:** Comprehensive sensitivity analysis confirming architectural stability across diverse hyperparameter configurations.
 
 ## Visual Insights & Benchmarking
 
@@ -25,28 +25,32 @@ The framework was validated via out-of-sample backtesting (2011-2024). The LSTM 
 
 | Model Architecture | RMSE (2011-2024) | Risk Management Insight |
 | :--- | :--- | :--- |
-| **SVD Lee-Carter (Baseline)** | 0.1682 | Rigid linear drift; fails to detect the post-2010 plateau. |
-| **Hybrid Residual Model** | 0.1446 | Improved graduation but maintains a linear extrapolation bias. |
-| **LSTM Champion** | **0.1030** | **Superior adaptation to Swiss regime shifts.** |
+| **SVD Lee-Carter (Baseline)** | 0.1682 | Rigid linear drift; misses the structural plateau. |
+| **Hybrid Residual Model** | 0.1419 | Improved graduation but maintains a linear extrapolation bias. |
+| **LSTM Champion** | **0.1141** | **Superior adaptation to Swiss regime shifts.** |
 
-![Model Derby](reports/figures/04_model_derby_comparison.png)
+![Full Comparison](reports/figures/04a_model_derby_comparison.png)
+*Fig 04a: Full range comparison highlighting the failure of non-sequential MLP baselines.*
+
+![Focus Comparison](reports/figures/04b_focus_derby_comparison.png)
+*Fig 04b: Focus on competitive models. The LSTM (magenta) effectively tracks the post-2010 mortality plateau.*
 
 ### 2. Sensitivity & Stability Analysis
-To ensure regulatory reliability, the LSTM was stress-tested against different look-back windows ($L$) and hidden units ($U$). The analysis confirms that a decadal window ($L=10$) is optimal for capturing Swiss structural shifts.
+The LSTM was stress-tested against various look-back windows ($L$) and hidden units ($U$). The analysis identified a performance optimum at $L=5, U=32$ (**RMSE: 0.0439**), while confirming that the decadal window ($L=10$) remains the most robust choice for capturing long-term structural shifts.
 
 ![Sensitivity Heatmap](reports/figures/05_sensitivity_heatmap.png)
 
-### 3. Model Risk & The "50-Point Prudence Gap"
-By 2050, the **LSTM Median Projection is 50.08 points higher** than the Lee-Carter trend. This divergence highlights a significant **Model Risk**: relying on linear assumptions in a post-linear era leads to systemic under-reserving of longevity liabilities.
+### 3. Model Risk & The "38-Point Prudence Gap"
+By 2050, the **LSTM Median Projection is 38.54 points higher** than the Lee-Carter trend. This divergence quantifies the **Model Risk**: relying on linear assumptions in a decelerating trend environment leads to systemic under-reserving of longevity liabilities.
 
 ![Model Risk Benchmark](reports/figures/09_lstm_vs_lc_benchmark.png)
 
 ### 4. Capital Requirements (SST Metrics)
-Following Swiss Re and FINMA regulatory standards, the framework generates a full probability distribution for the 2050 mortality index ($k_t$). We derive the **Expected Shortfall (ES 99%)** to calibrate the required capital buffer.
+Using Monte Carlo Dropout, we generate a probabilistic distribution for the 2050 mortality index ($k_t$). The skewness of the distribution highlights the "Neural Tail Risk" captured by the model.
 
-* **Best Estimate (Median $k_t$):** -70.34
-* **Expected Shortfall (ES 99%):** -74.15
-* **Longevity SCR Shock ($\Delta k_t$):** **3.48**
+* **Best Estimate (Median $k_t$):** -81.88
+* **Expected Shortfall (ES 99%):** -85.78
+* **Longevity SCR Shock ($\Delta k_t$):** **3.90**
 
 ![SST Metrics](reports/figures/10_longevity_risk_distribution.png)
 

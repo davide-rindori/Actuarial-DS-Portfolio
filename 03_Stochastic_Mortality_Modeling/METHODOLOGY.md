@@ -7,8 +7,8 @@
 | Field | Details |
 | :--- | :--- |
 | **Author** | Davide Rindori, PhD |
-| **Role** | SAV Actuarial Candidate / Risk Modeller |
-| **Version** | 1.1.0 (Post-Sensitivity Review) |
+| **Role** | SAV Actuarial Candidate |
+| **Version** | 1.2.0 (Final Production Sync) |
 | **Date** | March 2026 |
 | **Subject** | Swiss Longevity Trend Risk & SST Calibration |
 | **Status** | Final Production Release |
@@ -43,7 +43,7 @@ The **Long Short-Term Memory (LSTM)** architecture was selected for its ability 
 A standard Neural Network is a point-estimator; it provides no measure of "model doubt." To align with Risk Management standards, we implemented **Monte Carlo Dropout (MCD)**.
 
 ### 4.1 Epistemic Uncertainty
-During the inference phase, we maintain the Dropout layers active. This allows us to sample from the approximate posterior distribution of the model weights. By performing **100 stochastic forward passes**, we generate an ensemble of future mortality trajectories ($k_t$). The spread of these trajectories quantifies the **Epistemic Uncertainty**—the risk arising from the model's parameters and the underlying data trend.
+During the inference phase, we maintain the Dropout layers active. This allows us to sample from the approximate posterior distribution of the model weights. By performing **100 stochastic forward passes**, we generate an ensemble of future mortality trajectories ($k_t$). The spread of these trajectories quantifies the **Epistemic Uncertainty**—the risk arising from the model's parameters and the underlying data trend. The resulting distribution exhibits a natural skewness, reflecting the asymmetric nature of longevity tail risk.
 
 ---
 
@@ -52,18 +52,18 @@ The framework translates neural variance into actionable capital parameters. We 
 
 ### 5.1 Tail Risk Assessment
 In accordance with the **Swiss Solvency Test (SST)**, we prioritize **Expected Shortfall (ES)** over Value-at-Risk (VaR). 
-* **SST Shock Calibration:** The ES at 99% confidence level results in a mortality index of **-74.15**.
-* **Longevity SCR Shock:** The resulting shock ($\Delta k_t = 3.48$) reflects a conservative view, capturing the risk of a significant slowdown in mortality improvement compared to historical averages.
+* **SST Shock Calibration:** The ES at 99% confidence level results in a mortality index ($k_t$) of **-85.78**.
+* **Longevity SCR Shock:** The resulting shock ($\Delta k_t = 3.90$) reflects a conservative view, capturing the risk of a significant slowdown in mortality improvement compared to historical averages.
 
 ---
 
 ## 6. Validation and Quality Assurance
 To ensure the model is "Production-Ready," it underwent a multi-stage validation:
-1.  **Backtesting Derby:** A competitive comparison (2011–2024) between SVD-ARIMA, MLP, and LSTM, where the LSTM demonstrated a superior **RMSE of 0.1030**.
-2.  **Sensitivity Analysis:** A comprehensive stress-test across look-back windows ($L$) and hidden units ($U$). While identifying architectural sensitivity (RMSE Std Dev: 0.044), the analysis confirmed that the $L=10$ configuration is the most robust for capturing Swiss regime shifts.
-3.  **Residual Heatmap Diagnostic:** An Age-Period analysis of residuals confirmed a mean residual of **-0.0057**, indicating no significant systematic bias in the neural fit.
+1.  **Backtesting Derby:** A competitive comparison (2011–2024) between SVD-ARIMA, MLP, and LSTM, where the LSTM demonstrated a superior **RMSE of 0.1141** against the SVD baseline (0.1682).
+2.  **Sensitivity Analysis:** A comprehensive stress-test across look-back windows ($L$) and hidden units ($U$). The analysis identified a performance optimum at $L=5, U=32$ (**RMSE: 0.0439**), while confirming that the decadal window ($L=10$) provides the necessary structural robustness for long-term forecasting.
+3.  **Residual Heatmap Diagnostic:** An Age-Period analysis of residuals confirmed a mean residual of **0.0021**, indicating an unbiased fit that successfully absorbs cohort and period effects.
 
 ---
 
 ## 7. Strategic Conclusions
-The "Neural Longevity Framework" identifies a significant **Model Risk** in current industry benchmarks. By revealing a **50-point divergence** from the Lee-Carter trend by 2050, this methodology provides a more resilient basis for longevity swap pricing and internal capital model calibration, specifically addressing the post-2010 mortality improvement deceleration in Switzerland.
+The "Neural Longevity Framework" identifies a significant **Model Risk** in current industry benchmarks. By revealing a **38.54-point "Prudence Gap"** from the Lee-Carter trend by 2050, this methodology provides a more resilient basis for longevity swap pricing and internal capital model calibration. The framework effectively quantifies the required capital buffer to withstand the deceleration of mortality improvements observed in the Swiss market over the last decade.
