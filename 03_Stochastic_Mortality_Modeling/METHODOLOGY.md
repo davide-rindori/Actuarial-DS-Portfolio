@@ -9,7 +9,7 @@
 | **Author** | Davide Rindori, PhD |
 | **Role** | SAV Actuarial Candidate |
 | **Version** | 1.2.0 (Final Production Sync) |
-| **Date** | March 2026 |
+| **Date** | March 30, 2026 |
 | **Subject** | Swiss Longevity Trend Risk & SST Calibration |
 | **Status** | Final Production Release |
 
@@ -43,7 +43,7 @@ The **Long Short-Term Memory (LSTM)** architecture was selected for its ability 
 A standard Neural Network is a point-estimator; it provides no measure of "model doubt." To align with Risk Management standards, we implemented **Monte Carlo Dropout (MCD)**.
 
 ### 4.1 Epistemic Uncertainty
-During the inference phase, we maintain the Dropout layers active. This allows us to sample from the approximate posterior distribution of the model weights. By performing **100 stochastic forward passes**, we generate an ensemble of future mortality trajectories ($k_t$). The spread of these trajectories quantifies the **Epistemic Uncertainty**—the risk arising from the model's parameters and the underlying data trend. The resulting distribution exhibits a natural skewness, reflecting the asymmetric nature of longevity tail risk.
+During the inference phase, we maintain the Dropout layers active. This allows us to sample from the approximate posterior distribution of the model weights. By performing **100 stochastic forward passes**, we generate an ensemble of future mortality trajectories ($k_t$). The spread of these trajectories quantifies the **Epistemic Uncertainty**. The resulting distribution exhibits a natural skewness, reflecting the asymmetric nature of longevity tail risk.
 
 ---
 
@@ -58,12 +58,12 @@ In accordance with the **Swiss Solvency Test (SST)**, we prioritize **Expected S
 ---
 
 ## 6. Validation and Quality Assurance
-To ensure the model is "Production-Ready," it underwent a multi-stage validation:
-1.  **Backtesting Derby:** A competitive comparison (2011–2024) between SVD-ARIMA, MLP, and LSTM, where the LSTM demonstrated a superior **RMSE of 0.1141** against the SVD baseline (0.1682).
-2.  **Sensitivity Analysis:** A comprehensive stress-test across look-back windows ($L$) and hidden units ($U$). The analysis identified a performance optimum at $L=5, U=32$ (**RMSE: 0.0439**), while confirming that the decadal window ($L=10$) provides the necessary structural robustness for long-term forecasting.
-3.  **Residual Heatmap Diagnostic:** An Age-Period analysis of residuals confirmed a mean residual of **0.0021**, indicating an unbiased fit that successfully absorbs cohort and period effects.
+1. **Backtesting Derby:** Competitive comparison (2011–2024) where the LSTM demonstrated a superior **RMSE of 0.1141** against SVD (0.1682).
+2. **Sensitivity Analysis:** Identified a performance optimum at $L=5, U=32$ (**RMSE: 0.0439**), while confirming $L=10$ as the robust standard for Swiss regime shifts.
+3. **Residual Heatmap:** Confirmed a mean residual of **0.0021**, indicating an unbiased fit across age-period grids.
+4. **Structural Bias Discussion:** The systematic underestimation of mortality during backtesting (bias) is interpreted as a "Prudence Buffer." It reflects the model's adherence to long-term improvement trends while the actual data was impacted by post-2011 deceleration and the 2020-2023 exogenous pandemic shocks.
 
 ---
 
 ## 7. Strategic Conclusions
-The "Neural Longevity Framework" identifies a significant **Model Risk** in current industry benchmarks. By revealing a **38.54-point "Prudence Gap"** from the Lee-Carter trend by 2050, this methodology provides a more resilient basis for longevity swap pricing and internal capital model calibration. The framework effectively quantifies the required capital buffer to withstand the deceleration of mortality improvements observed in the Swiss market over the last decade.
+The "Neural Longevity Framework" reveals a **38.54-point "Prudence Gap"** compared to Lee-Carter by 2050. This methodology provides a resilient basis for longevity swap pricing and internal capital model calibration, effectively addressing the post-2010 mortality improvement deceleration in Switzerland.

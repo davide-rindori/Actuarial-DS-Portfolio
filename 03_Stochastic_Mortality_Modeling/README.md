@@ -9,6 +9,12 @@
 
 ---
 
+## 📄 Project Documentation
+* **[Technical Paper (PDF)](./reports/Stochastic_Longevity_Forecasting_Rindori_2026.pdf)**: Full actuarial report including SST calibration, model risk analysis, and structural bias discussion.
+* **[LaTeX Source](./latex/)**: Original source files used for the technical documentation and typesetting.
+
+---
+
 ## Executive Summary
 This repository implements a **State-of-the-Art Longevity Risk Framework** designed to address the limitations of linear mortality drift in modern demographic regimes. By transitioning from traditional benchmarks to **Probabilistic Deep Learning (LSTM + Monte Carlo Dropout)**, this framework identifies the recent Swiss mortality "regime shifts" and quantifies the **Prudence Gap** required for capital adequacy under **Swiss Solvency Test (SST)** and **Solvency II** standards.
 
@@ -68,6 +74,4 @@ This project is licensed under the **MIT License**.
 ---
 ## Contact & Author
 
-**Davide Rindori, PhD** *SAV Actuarial Candidate | Data Scientist / Risk Modeller* **LinkedIn:** [linkedin.com/in/davide-rindori/](https://www.linkedin.com/in/davide-rindori/)
-
-*This project was developed as a benchmark study for modernizing longevity risk frameworks in high-income markets, focusing on the integration of Deep Learning with regulatory capital standards.*
+**Davide Rindori, PhD** *SAV Actuarial Candidate | Data Scientist / PhD Physics* **LinkedIn:** [linkedin.com/in/davide-rindori/](https://www.linkedin.com/in/davide-rindori/)

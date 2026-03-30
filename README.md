@@ -8,11 +8,10 @@ Welcome to my professional portfolio. This repository showcases a collection of 
 ## 📂 Project Index
 
 ### 3. [Stochastic Longevity Forecasting: A Neural Approach to SST Capital Calibration](./03_Stochastic_Mortality_Modeling)
-**Focus:** *Life & Health Reinsurance, LSTM Networks, Swiss Solvency Test (SST)*
-* Developed a framework for Swiss mortality forecasting, replacing linear drift assumptions with **LSTM-based sequential modeling**.
-* Identified a **38.5-point "Prudence Gap"** and quantified Model Risk by benchmarking neural projections against traditional Lee-Carter benchmarks.
-* Calibrated the **Longevity SCR Shock (ES 99%) at 3.90** via Monte Carlo Dropout, ensuring robust tail-risk estimation for regulatory capital compliance.
-* Validated architectural stability through a comprehensive sensitivity analysis of temporal windows and neural hyperparameters.
+**Focus:** *Life & Health Reinsurance, Deep Learning, Swiss Solvency Test (SST)*
+* **Core Output:** Developed an LSTM-based framework for Swiss mortality, quantifying a **3.90 Longevity SCR Shock**.
+* **Model Risk:** Identified a **38.5-point "Prudence Gap"** by benchmarking neural projections against traditional linear drift assumptions.
+* **Documentation:** Includes a full **[Technical Paper (PDF)](./03_Stochastic_Mortality_Modeling/reports/Stochastic_Longevity_Forecasting_Rindori_2026.pdf)** calibrating capital buffers under Swiss Solvency Test standards.
 
 ### 2. [Zurich Extreme Precipitation Analysis (EVT)](./02_Climate_Risk_EVT)
 **Focus:** *Climate Risk, Extreme Value Theory (EVT), Big Data Engineering*
@@ -29,18 +28,17 @@ Welcome to my professional portfolio. This repository showcases a collection of 
 ---
 
 ## 🛠️ Skills & Tools
-* **Actuarial:** Stochastic Longevity modeling, Extreme Value Theory (EVT), GLM, Pricing, SCR Calibration.
-* **Technical:** Python (Pandas, Xarray, Scikit-learn, PyTorch/TensorFlow), SQL, Git, API Data Engineering.
+* **Actuarial:** Stochastic Longevity modeling, SCR Calibration, EVT, GLM, Pricing.
+* **Technical:** Python (PyTorch/TensorFlow, Pandas, Scikit-learn), SQL, Git, LaTeX.
 * **Domain:** Swiss Solvency Test (SST), Solvency II, NatCat Modeling, Model Risk Management.
 
 ---
 
 ## 🔬 Education & Certification
 * **SAV Actuarial Candidate:** Actively pursuing certification with the Swiss Association of Actuaries.
-* **PhD in Physics — University of Florence:** Specialized in complex systems and advanced mathematical modeling.
+* **PhD in Physics — University of Florence:** Specialized in complex systems modeling.
 
 ---
-
 ## 📫 Contact
 * **LinkedIn:** [linkedin.com/in/davide-rindori/](https://www.linkedin.com/in/davide-rindori/)
 * **Email:** [rindori.d@gmail.com](mailto:rindori.d@gmail.com)
