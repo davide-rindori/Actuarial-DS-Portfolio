@@ -9,14 +9,12 @@ venv/
 .ipynb_checkpoints
 
 # Project Specific
+# We exclude raw HMD data for licensing and performance reasons
 data/raw/*.txt
 data/raw/*.csv
-# Se vuoi caricare solo i clean, scommenta sopra. 
-# Di solito i dati HMD non si caricano per policy, si caricano gli script per ottenerli.
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Plots/Reports
-reports/figures/*.png
+# Reports/Figures - We keep these for GitHub visualization
