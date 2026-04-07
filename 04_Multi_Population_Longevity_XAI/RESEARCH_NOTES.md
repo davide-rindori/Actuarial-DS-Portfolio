@@ -25,7 +25,7 @@
 ## 2. Preliminary Observations (EDA & LC)
 - **Norway Volatility (Fig. 03)**: Norway shows significant instability in its mortality index ($k_t$) post-2010 compared to larger populations.
     - *Statistical Insight*: Smaller populations have higher variance. A few deaths more or less significantly shift the $k_t$ in a rank-1 SVD model.
-    - *Demographic Insight*: Evidence of a "harvesting effect"—a period of exceptionally low mortality (2011-2015) followed by a rebound as the fragile population "catches up" with biological limits.
+    - *Demographic Insight*: Evidence of a "harvesting effect"—a period of exceptionally low mortality (2011-2015) followed by a rebound as the fragile population "catch-up" with biological limits.
 - **The 2011 Inflection**: Most countries exhibit a "deceleration gap"—a visible change in the slope of $k_t$ around 2011. Standard linear models struggle to adapt to this structural change.
 - **Japan's Catch-up**: Japan started with the highest mortality in 1956 but achieved the fastest rate of improvement, crossing all other countries by the 1980s to become the global longevity leader.
 
@@ -105,3 +105,57 @@ At the conclusion of the benchmarking phase, three fundamental criticalities wer
 - **Proposed Innovation**: Utilization of Long Short-Term Memory (LSTM) Recurrent Neural Networks, specifically designed to capture long-term dependencies and manage non-stationary time series.
 - **Research Goal**: To determine if an LSTM can implicitly learn both the "Common Factor" and the "Specific Drifts" (persistent residuals) identified empirically. The objective is to outperform actuarial benchmarks by providing forecasts more resilient to the structural changes seen post-2011.
 - **Explainability (XAI)**: The integration of interpretability techniques (such as SHAP or Integrated Gradients) will allow us to "open the black box," mapping how a country's trends (e.g., the Japanese miracle) influence the projections of other cluster members, transforming a predictive model into a rigorous tool for demographic analysis.
+
+## 6. Bridge to Machine Learning: Feature Engineering & Windowing
+
+### 6.1 Rationale for the "Hybrid" Input Vector
+In Notebook 03, we transition from purely actuarial modeling to Deep Learning by exporting the latent factors from the Li-Lee model ($K_t$ and $k_{t,i}$). 
+- **The "Common Anchor" Strategy**: By including the Common Factor $K_t$ as a feature, we provide the LSTM with a global "clock" of longevity. This ensures the model understands the general direction of the cluster before interpreting local deviations.
+- **CBD as a Strategic Benchmark**: While CBD parameters ($\kappa_t$) were not included in the initial feature set to avoid overfitting on a small sample (55 sequences), the CBD analysis remains a critical "Stress Test" for the LSTM. If the LSTM succeeds in forecasting mortality for the 65-90 age group better than CBD, it proves that neural networks can capture the "Aging Slope" dynamics implicitly through the $k_t$ factors.
+
+### 6.2 The Sliding Window (Lookback) Approach
+To handle the temporal dependency of mortality, we implemented a supervised learning format using a **10-year lookback period**.
+- **Contextual Memory**: A 10-year window allows the LSTM to identify non-linear patterns (like the post-2011 deceleration) by analyzing a decade of trajectory rather than just the last observed step.
+- **Data Constraints**: This window size was selected to maximize historical context while maintaining a sufficient number of overlapping sequences for training, given the limited 65-year span of the HMD data.
+
+### 6.3 Feature Scaling & Stationarity via First Differences
+- **From Levels to Variations**: To ensure gradient stability and handle non-stationarity, we transitioned from modeling absolute index levels ($K_t$) to **First Differences** ($\Delta K_t$). This stationarizes the series around a zero mean, preventing the "drift bias" common in linear mortality projections.
+- **Standardization (StandardScaler)**: We shifted from MinMax to **Standardization** (fitting a Mean of 0 and Variance of 1 solely on the training set). This provides the LSTM with a stable numerical environment where annual shocks are comparable across decades, regardless of the absolute mortality level.
+
+## 7. Deep Learning Implementation: The Hierarchical LSTM (Notebook 03)
+
+### 7.1 Architecture Rationale
+- **Multi-Output Strategy**: The network is designed to predict the entire 7-dimensional vector of mortality indices (1 Common + 6 Specific) simultaneously. This forces the model to internalize the reciprocal constraints between the cluster and individual countries.
+- **Layer Stacking**: We implemented a stacked LSTM (32-16 units) after Bayesian optimization.
+    - *Observation*: Initial attempts with larger networks (64+ units) led to immediate overfitting due to the low sample size (N=46 training sequences). The "shallowing" of the network improved validation stability significantly.
+
+### 7.2 Bayesian Hyperparameter Optimization
+To avoid arbitrary parameter selection, we utilized **Bayesian Optimization** (Keras Tuner) to explore the configuration space.
+- **Search Space**: Number of units, dropout rates, and learning rates.
+- **Optimal Result**: The tuner identified a lean architecture (32/16 units) with a relatively high learning rate (0.01).
+- *Technical Insight*: A higher learning rate was necessary to allow the optimizer to escape local minima in a high-dimensional loss landscape despite the small number of training epochs.
+
+## 8. Methodological Pivots: Fighting Data Leakage & Drift
+
+### 8.1 The Anti-Leakage Protocol
+A critical refinement was made regarding **Feature Scaling**. 
+- **Standard Protocol (Initial)**: Fit-transform on the entire dataset.
+- **Strict Protocol (Revised)**: Fit the scaler exclusively on the training set (1956-2011) and apply it to the validation set. 
+- *Consequence*: This revealed a massive "Drift Bias." Because mortality post-2011 reached values lower than the 1956-2011 minimum, the `MinMaxScaler` produced out-of-bounds inputs, leading to a failure in convergence (Validation Loss explosion). This "Failure" served as empirical proof of the non-stationarity of the frontier longevity signal.
+
+### 8.2 The "First Differences" Pivot ($\Delta K_t$)
+To solve the drift bias identified in the levels, we transitioned to modeling **First Differences** (annual changes) instead of absolute index levels.
+- **Mathematical Rationale**: Modeling $Y_t = K_t - K_{t-1}$ transforms a non-stationary process with drift into a near-stationary process.
+- **Result**: RMSE on the validation set dropped from **21.3** (levels) to **4.7** (differences).
+- **Expectation Realized**: The LSTM proved much more adept at filtering the "volatility noise" of annual variations than at guessing the absolute depth of a persistent drift. This approach aligns the model with standard econometric practices (Unit Root handling).
+
+## 9. Performance Analysis: Out-of-Sample Validation (2012-2020)
+
+### 9.1 The "Conservative Bias" Discovery (Fig. 08)
+- **Visual Analysis**: The LSTM forecast on the validation set (2012-2020) shows a smooth, persistent downward trend, whereas the Li-Lee Actuals exhibit erratic volatility and a partial stasis (plateau) around 2017-2020.
+- **Justification for Risk Management**: The LSTM appears to ignore the short-term "stalls" in mortality improvement, treating them as transitory noise. 
+- **Actuarial Implication**: From a Swiss Re or Wüthrich perspective, this model is "Prudently Optimistic" about longevity. It suggests that despite recent slowing, the underlying biological longevity engine is still active. 
+
+### 9.2 Robustness & Early Stopping
+- **Training Stability**: The model consistently reaches optimal weights around Epoch 10-15. Restoring best weights via Early Stopping prevents the model from "memorizing" the noise of the small training sample.
+- **Conclusion of Notebook 03**: We have achieved a stable, serialized, and peer-reviewable neural model. The next phase (Notebook 04) will focus on recursive forecasting to project these dynamics into 2050 with fan charts.
