@@ -71,7 +71,7 @@
     - The Li-Lee model mandates stationarity to ensure "coherence" (no long-term divergence). Our results prove that for "core" European countries, this coherence is a mathematical imposition that contradicts the data. 
     - This creates the perfect entry point for the **LSTM**: while actuarial models are forced to "ignore" these persistent trends to maintain coherence, Deep Learning can model this underlying structure, providing more accurate forecasts without artificial mean-reversion constraints.
 
-### 4.4 Confirmatory Stationarity Analysis: ADF vs KPSS (Cell 2.6b)
+## 4.4 Confirmatory Stationarity Analysis: ADF vs KPSS (Cell 2.6b)
 To verify the validity of the ADF results, we performed a **Conflict Analysis** by cross-referencing the results with the KPSS test ($H_0$: Series is Stationary).
 
 | Country | ADF (H0: Non-Stat) | KPSS (H0: Stat) | Status | Statistical Interpretation |
@@ -154,8 +154,49 @@ To solve the drift bias identified in the levels, we transitioned to modeling **
 ### 9.1 The "Conservative Bias" Discovery (Fig. 08)
 - **Visual Analysis**: The LSTM forecast on the validation set (2012-2020) shows a smooth, persistent downward trend, whereas the Li-Lee Actuals exhibit erratic volatility and a partial stasis (plateau) around 2017-2020.
 - **Justification for Risk Management**: The LSTM appears to ignore the short-term "stalls" in mortality improvement, treating them as transitory noise. 
-- **Actuarial Implication**: From a Swiss Re or Wüthrich perspective, this model is "Prudently Optimistic" about longevity. It suggests that despite recent slowing, the underlying biological longevity engine is still active. 
+- **Actuarial Implication**: From a Swiss Re or Wüthrich perspective, this model is "Prudently Optimistic about longevity. It suggests that despite recent slowing, the underlying biological longevity engine is still active. 
 
 ### 9.2 Robustness & Early Stopping
 - **Training Stability**: The model consistently reaches optimal weights around Epoch 10-15. Restoring best weights via Early Stopping prevents the model from "memorizing" the noise of the small training sample.
 - **Conclusion of Notebook 03**: We have achieved a stable, serialized, and peer-reviewable neural model. The next phase (Notebook 04) will focus on recursive forecasting to project these dynamics into 2050 with fan charts.
+
+## 10. Stochastic Forecasting & Inference Strategy (Notebook 04)
+
+### 10.1 Bayesian LSTM Inference: Monte Carlo Dropout (MCD)
+To address the deterministic nature of standard LSTMs during inference, we implemented **Monte Carlo Dropout**.
+- **Theoretical Foundation**: By keeping Dropout layers active during the prediction phase (`training=True`), the model acts as a Bayesian approximation. This allows us to sample 1,000 distinct trajectories for each time step.
+- **Expectation Realized**: The resulting "Fan Chart" (Fig. 09) exhibits a natural expansion of uncertainty over time. This quantification is critical for solvency frameworks (e.g., SST/Solvency II), where the 99.5th percentile of longevity shocks dictates capital requirements.
+
+### 10.2 Recursive Forecasting Framework
+Predictions are generated through a recursive feedback loop where each predicted variation ($\Delta K_{t+1}$) is integrated back into the input window for the subsequent step.
+- **Technical Implementation**: We utilized a 10-year sliding window of variations. To ensure numerical stability, we implemented explicit tensor casting and utilized `np.roll` for efficient window updates.
+- **The Pivot to Stochastic Integration**: The model forecasts the *variations*, which are then cumulatively summed (integrated) starting from the last observed level in 2020 ($K_{2020}$).
+- **Resulting Dynamics**: The LSTM median projection avoids the "rigid linearity" of standard Random Walk with Drift models. Instead, it exhibits subtle curvatures and cyclicities learned from the 1956-2020 history.
+
+### 10.3 Technical Challenges and Adjustments
+- **Optimizer Mismatch**: Encountered Keras warnings regarding variable loading for optimizers.
+    - *Resolution*: Loaded the model with `compile=False`, as the weights are sufficient for inference and the optimizer state is irrelevant for forecasting.
+- **Input Structure Validation**: Addressed Keras 3 runtime warnings regarding input layer naming by ensuring explicit casting to `tf.float32` and wrapping sequences in a batch-dimensioned tensor.
+- **Computational Overhead**: Generating 30,000 inferences (1,000 simulations $\times$ 30 years) required a progress-monitoring implementation to ensure visibility into the M1 Pro processing status.
+
+### 10.4 Key Observations: Fan Chart Interpretation (Fig. 09)
+- **Deep Learning Advantage**: Unlike classical Lee-Carter standard projections (which yield a straight line), the LSTM median exhibits non-linear curvatures. Notably, around 2028-2030 and 2045, the model projects subtle "inflections" or rhythmic stalls, suggesting it has internalized historical mortality cycles rather than just assuming a constant drift.
+- **Uncertainty Asymmetry**: The fan chart reveals a higher probability of "longevity shocks" (lower $K_t$ values) compared to mortality spikes. This reflects the structural bias of frontier populations toward continuous improvement.
+- **Drift Stability**: Despite the 30-year recursive horizon, the model does not exhibit divergence or explosive behavior. The median $K_t$ reaches **-123.63** by 2050 (from approx. -60 in 2020). The narrow 95% confidence interval (**[-125.26, -121.87]**) validates the **First Differences Pivot** as the correct methodological choice for long-term demographic stability.
+
+## 11. Demographic Impact: Life Expectancy Reconstruction
+
+### 11.1 Back-Transformation Methodology
+To translate abstract latent factors into actuarial value, we performed a back-transformation using the baseline age profiles ($a_{x,i}$) and common sensitivities ($B_x$) extracted in Notebook 02.
+- **Actuarial Life Table Implementation**: Predicted log-mortality rates were converted into central death rates ($m_x$), then into probabilities of death ($q_x$). Life expectancy at birth ($e_0$) was calculated via the trapezoidal rule across the 1,000 stochastic trajectories.
+
+### 11.2 Case Study: Switzerland (CHE) Findings
+- **Realistic Longevity Gains**: The model projects a median $e_0$ increase for Switzerland from **81.71** years in 2020 to **85.19** years in 2050. This gain of ~3.5 years in three decades represents a "Prudent Optimism" consistent with advanced demographic forecasts (e.g., Swiss Federal Statistical Office) but driven by neural historical memory.
+- **Sensitivity to 2020 Shocks**: The base year $e_0$ (81.71) is slightly lower than the pre-2020 historical average (~83-84), confirming that the LSTM correctly integrated the 2020 mortality shock (COVID-19) into its starting state.
+- **The "Uncertainty Squeeze"**: Paradoxically, the uncertainty for life expectancy is much narrower than for the $K_t$ factor (95% CI: **[85.11, 85.25]** in 2050). This occurs because $e_0$ is an integral of death rates across all ages; the integration process acts as a statistical smoother, dampening individual annual factor volatility while preserving the deep demographic trend.
+- **Financial Utility**: For reinsurers (e.g., Swiss Re), these fan charts provide the quantitative foundation for "Longevity Swap" pricing, mapping exactly how much capital is required to cover the 2.5th percentile scenario (where $e_0$ exceeds the median forecast).
+
+### 11.3 Aesthetic & Methodological Integrity: The Life Expectancy Fan Chart (Fig. 10)
+- **Stylistic Consistency (Viridis)**: Fig. 10 follows the project’s rigorous aesthetic standard defined in `style_config.py`. By utilizing the primary index of the **Viridis palette** (a deep indigo-purple) for Switzerland, we maintain a visual link across all notebooks. The use of a dashed line for the median and a semi-transparent shaded area (alpha=0.2) for the 95% CI ensures that the forecast is distinguishable from the solid black historical series.
+- **The "COVID-19 Recovery" Profile**: Visually, the historical series (2000-2020) exhibits a visible dip in 2020. The LSTM forecast initiates from this lower bound and projects a rapid but non-linear recovery. This suggests the model interprets the pandemic not as a permanent structural break, but as a severe transitory shock followed by a return to the underlying biological trend.
+- **Non-Linear Trajectory**: The projected median for $e_0$ is not a simple straight line. It exhibits a slight "softening" of the slope in the 2040s, reflecting the LSTM’s recognition of the historical deceleration gap identified in the EDA phase. This creates a more defensible forecast than linear extrapolation, as it accounts for the potential "saturation" of mortality improvements at extremely old ages.
