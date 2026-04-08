@@ -154,7 +154,7 @@ To solve the drift bias identified in the levels, we transitioned to modeling **
 ### 9.1 The "Conservative Bias" Discovery (Fig. 08)
 - **Visual Analysis**: The LSTM forecast on the validation set (2012-2020) shows a smooth, persistent downward trend, whereas the Li-Lee Actuals exhibit erratic volatility and a partial stasis (plateau) around 2017-2020.
 - **Justification for Risk Management**: The LSTM appears to ignore the short-term "stalls" in mortality improvement, treating them as transitory noise. 
-- **Actuarial Implication**: From a Swiss Re or Wüthrich perspective, this model is "Prudently Optimistic about longevity. It suggests that despite recent slowing, the underlying biological longevity engine is still active. 
+- **Actuarial Implication**: From a Swiss Re or Wüthrich perspective, this model is "Prudently Optimistic" about longevity. It suggests that despite recent slowing, the underlying biological longevity engine is still active. 
 
 ### 9.2 Robustness & Early Stopping
 - **Training Stability**: The model consistently reaches optimal weights around Epoch 10-15. Restoring best weights via Early Stopping prevents the model from "memorizing" the noise of the small training sample.
@@ -190,13 +190,41 @@ Predictions are generated through a recursive feedback loop where each predicted
 To translate abstract latent factors into actuarial value, we performed a back-transformation using the baseline age profiles ($a_{x,i}$) and common sensitivities ($B_x$) extracted in Notebook 02.
 - **Actuarial Life Table Implementation**: Predicted log-mortality rates were converted into central death rates ($m_x$), then into probabilities of death ($q_x$). Life expectancy at birth ($e_0$) was calculated via the trapezoidal rule across the 1,000 stochastic trajectories.
 
-### 11.2 Case Study: Switzerland (CHE) Findings
-- **Realistic Longevity Gains**: The model projects a median $e_0$ increase for Switzerland from **81.71** years in 2020 to **85.19** years in 2050. This gain of ~3.5 years in three decades represents a "Prudent Optimism" consistent with advanced demographic forecasts (e.g., Swiss Federal Statistical Office) but driven by neural historical memory.
-- **Sensitivity to 2020 Shocks**: The base year $e_0$ (81.71) is slightly lower than the pre-2020 historical average (~83-84), confirming that the LSTM correctly integrated the 2020 mortality shock (COVID-19) into its starting state.
-- **The "Uncertainty Squeeze"**: Paradoxically, the uncertainty for life expectancy is much narrower than for the $K_t$ factor (95% CI: **[85.11, 85.25]** in 2050). This occurs because $e_0$ is an integral of death rates across all ages; the integration process acts as a statistical smoother, dampening individual annual factor volatility while preserving the deep demographic trend.
+### 11.2 Cluster-Wide Results and Longevity Convergence
+- **Systemic Longevity Signal**: The cluster-wide projections show a highly coherent improvement trend across all six nations. Gains in life expectancy range between **+3.4 and +3.9 years** by 2050, confirming that the LSTM has captured a systemic longevity "engine" shared by frontier populations.
+- **The Convergence Effect**: Countries starting from a slightly lower baseline, such as West Germany (2020 $e_0$: 80.37), exhibit a faster rate of improvement (+3.92 years) compared to leaders like Switzerland (+3.48 years). This suggests the model implicitly learns a convergence mechanism, where the "laggards" of the cluster gravitate toward the shared technological and medical frontier.
+- **Biological Plausibility**: A median gain of ~3.5 years over three decades is consistent with "Prudent Optimism" in actuarial science. It avoids the implausible exponential explosions often seen in unconstrained linear models, producing a forecast that is both modern and risk-manageable for solvency purposes.
+
+### 11.3 Case Study: Switzerland (CHE) Findings
+- **Forecast Resilience**: Switzerland projects a median $e_0$ increase from **81.71** in 2020 to **85.19** in 2050. Despite the visible historical deceleration post-2011, the model suggests that the fundamental drivers of longevity remain active.
+- **Sensitivity to 2020 Shocks**: The base year $e_0$ reflects the 2020 mortality shock (COVID-19). The LSTM initiates the forecast from this local minimum and projects a non-linear "recovery" trajectory, interpreting the pandemic as a transitory shock rather than a permanent structural shift.
+- **The "Uncertainty Squeeze"**: Paradoxically, the uncertainty for life expectancy is much narrower than for the $K_t$ factor (95% CI: **[85.11, 85.25]** in 2050). This occurs because $e_0$ is an integral of death rates across all ages; the integration process acts as a statistical smoother, dampening annual factor volatility while preserving the deep demographic trend.
 - **Financial Utility**: For reinsurers (e.g., Swiss Re), these fan charts provide the quantitative foundation for "Longevity Swap" pricing, mapping exactly how much capital is required to cover the 2.5th percentile scenario (where $e_0$ exceeds the median forecast).
 
-### 11.3 Aesthetic & Methodological Integrity: The Life Expectancy Fan Chart (Fig. 10)
-- **Stylistic Consistency (Viridis)**: Fig. 10 follows the project’s rigorous aesthetic standard defined in `style_config.py`. By utilizing the primary index of the **Viridis palette** (a deep indigo-purple) for Switzerland, we maintain a visual link across all notebooks. The use of a dashed line for the median and a semi-transparent shaded area (alpha=0.2) for the 95% CI ensures that the forecast is distinguishable from the solid black historical series.
-- **The "COVID-19 Recovery" Profile**: Visually, the historical series (2000-2020) exhibits a visible dip in 2020. The LSTM forecast initiates from this lower bound and projects a rapid but non-linear recovery. This suggests the model interprets the pandemic not as a permanent structural break, but as a severe transitory shock followed by a return to the underlying biological trend.
-- **Non-Linear Trajectory**: The projected median for $e_0$ is not a simple straight line. It exhibits a slight "softening" of the slope in the 2040s, reflecting the LSTM’s recognition of the historical deceleration gap identified in the EDA phase. This creates a more defensible forecast than linear extrapolation, as it accounts for the potential "saturation" of mortality improvements at extremely old ages.
+### 11.4 Comparative Multi-Country Visualization Analysis (Fig. 10)
+- **The "Parallelism" of Longevity**: Analysis of Figure 10 reveals a striking alignment between Switzerland (purple) and Japan (yellow-green). Despite Japan’s historical status as a longevity leader, the LSTM projects nearly identical trajectories for both populations, converging toward the ~85.2-year mark by 2050. This indicates that the neural network perceives both as "Frontier Leaders" reaching a shared biological and technological ceiling.
+- **Evidence of Catch-up Dynamics (West Germany)**: West Germany (teal) initiates the forecast from a significantly lower baseline but maintains a steeper improvement slope. This serves as visual confirmation of the "Convergence Effect" discussed in Section 11.2, where the model applies a subtle catch-up pressure on "laggard" populations within the cluster.
+- **Expected vs. Disconfirmed Behaviors**:
+    - *Expected*: The "Common Trend Resilience" is fully realized, as all three selected countries move in strict unison, proving the dominance of the shared $K_t$ factor.
+    - *Disconfirmed*: The absolute dominance of Japan was partially disconfirmed; the model suggests the "historical gap" has narrowed significantly, placing CHE and JPN on par for the coming decades.
+- **Non-Linear Rhythms**: Unlike Lee-Carter's rigid linear extrapolation, Figure 10 displays non-linear curvatures—most notably a slight softening of the improvement slope in the late 2020s (2028-2030). This suggests the LSTM has internalized cyclical historical "stalls" and improvement waves, providing a more sophisticated actuarial estimate than standard time-series models.
+
+![e0 Comparative Forecast](reports/figures/fig10_multi_country_e0_forecast.png)
+
+## 12. Explainable AI (XAI): Deciphering the Black Box (Fig. 11)
+
+### 12.1 Temporal Saliency Analysis
+To overcome the "Black Box" criticism of Deep Learning in actuarial science, a gradient-based Saliency Analysis was implemented. This technique measures the sensitivity of the 2021-2050 forecast to each of the 10 years in the input lookback window (2011-2020).
+
+![Temporal Feature Importance](reports/figures/fig11_xai_temporal_importance.png)
+
+### 12.2 Bimodal Memory Profile
+The XAI results reveal a distinct Bimodal Importance distribution, which explains the LSTM’s superior stability over classical models:
+1. **Recency Bias (t-1: 21.6%)**: As expected, the most recent observed year has the highest predictive power. This ensures the model is reactive to current mortality levels.
+2. **Deep Contextual Memory (t-8: 20.1%)**: Significantly, the model places almost equal weight on data from 8 years prior. This is a critical finding: the LSTM identifies structural patterns or cyclical echoes that occurred nearly a decade ago to anchor its long-term trajectory.
+3. **The Intermediate "Valle" (t-4 to t-6)**: There is a notable drop in importance for middle-range lags (averaging ~3%). The model essentially filters out these intermediate years as "noise" or transitionary data, focusing instead on the immediate present and the distant past to synthesize its forecast.
+
+### 12.3 Research Insights: Expected vs. Discovered Patterns
+- **Discovery of Cyclical Memory**: The high importance of lag t-8 was an **unexpected discovery**. While traditional models assume the most recent data is always the most relevant, the LSTM proves that longevity trends possess a "memory effect" where older structural shifts continue to influence future variations.
+- **Justification for Lookback Window**: The non-zero importance at t-10 (6.4%) validates the choice of a 10-year sliding window. Had the importance dropped to zero earlier, a shorter window would have sufficed; instead, the results confirm that the model utilizes the entire historical context provided.
+- **Structural Integrity**: This XAI profile explains the non-linear "rhythms" observed in the Fan Charts. By balancing t-1 (reactive) and t-8 (structural), the LSTM avoids being over-influenced by single-year anomalies (like the 2020 COVID shock), using the deep memory to pull the forecast back toward the biological baseline.
