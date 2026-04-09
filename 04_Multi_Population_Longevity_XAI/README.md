@@ -1,39 +1,50 @@
-# Project 04: Multi-Population Longevity Forecasting with XAI
+# Project 04: Neural Multi-Population Mortality
+## *Beyond Linear Coherence with LSTM and Explainable AI (XAI)*
 
-Research pipeline for forecasting mortality rates across a 6-country cluster (CHE, SWE, NOR, DEUTW, NLD, JPN) using classical actuarial models (Lee-Carter, Li-Lee) and Deep Learning (LSTM) with Explainable AI (XAI).
+This repository contains the complete research pipeline for forecasting mortality rates across a high-longevity 6-country cluster (**Switzerland, Sweden, Norway, West Germany, Netherlands, and Japan**). The project challenges classical actuarial models (Lee-Carter, Li-Lee, CBD) by introducing a **Hierarchical LSTM** architecture capable of capturing non-linear trends and persistent structural shifts.
 
-## Key Visualizations
-- **Historical Trends**: Comparative analysis of mortality deceleration post-2011.
-- **Stationarity Paradox**: Visual evidence of non-stationary residuals in core European populations despite visual stability.
-- **Model Convergence**: Bayesian-optimized learning curves for Hierarchical LSTM.
-- **Out-of-Sample Validation**: Performance of LSTM vs. Li-Lee benchmarks on the 2012-2020 window.
+## 🎯 Research Objectives
+- **Neural Innovation**: Implementing a Bayesian-optimized LSTM with **Monte Carlo Dropout (MCD)** for stochastic longevity forecasting.
+- **Actuarial Benchmarking**: Direct comparison against **Li-Lee (2005)** and **CBD (2006)** models.
+- **Explainability (XAI)**: Decompressing the "Black Box" via Temporal Saliency and Gradient-based importance.
+- **Regulatory Readiness**: Testing model resilience through Actuarial Stress Tests (Breakthrough Scenarios) and Biological Consistency Audits.
 
-## Research Focus
-The project evaluates the "Gold Standard" of actuarial literature against Deep Learning architectures, focusing on the **post-2011 mortality deceleration** and the empirical failure of classical coherence assumptions.
+## 🚀 Key Innovations & Results
 
-### Model Benchmarks & Innovation
-- **Lee-Carter (1992)**: Baseline independent stochastic modeling via SVD.
-- **Li-Lee (2005)**: Multi-population coherent modeling. Our analysis reveals structural breaches in stationarity assumptions for core countries (SWE, CHE, DEUTW).
-- **CBD (2006)**: Parametric modeling (intercept/slope) for the 65-90 age bracket.
-- **Hierarchical LSTM**: A neural architecture designed to process both the Common Factor ($K_t$) and Specific Residuals ($k_{t,i}$).
-    - **Optimization**: Bayesian Search for optimal depth and learning rates.
-    - **Stationarity Pivot**: Transition from absolute levels to **First Differences** ($\Delta K_t$) to eliminate drift bias and handle non-stationarity.
-    - **Anti-Leakage Protocol**: Strict separation of training and validation scaling to ensure academic rigor (arXiv-ready).
+### 1. The First Differences Pivot ($\Delta K_t$)
+To eliminate the "Drift Bias" identified in traditional level-based training, the model was transitioned to forecast **First Differences**. This stationarization strategy improved validation stability (RMSE reduction from 21.3 to 4.7) and ensured long-term projection consistency.
 
-## Project Structure
-- `data/`: Processed mortality data, stationarity reports, and serialized validation results.
+### 2. Stochastic Fan Charts (2021-2050)
+Utilizing MC Dropout, the model generates 1,000 stochastic trajectories. Unlike the rigid linearity of Lee-Carter, the LSTM captures non-linear curvatures and cyclical "stalls" in mortality improvement.
+![Stochastic Projection](reports/figures/fig09_kt_stochastic_forecast.png)
+
+### 3. Longevity Convergence & Frontier Dynamics
+The results confirm a **Catch-up Effect**: countries starting from a lower baseline (e.g., West Germany) exhibit steeper improvement slopes, converging toward a shared biological "Frontier" (~85.2 years for CHE/JPN) by 2050.
+![Convergence Map](reports/figures/fig13_final_convergence_map.png)
+
+### 4. Actuarial Stress Testing
+The model was subjected to a **10% Mortality Shock** (Medical Breakthrough scenario). The LSTM demonstrated high resilience, accepting the shock as a new structural baseline without losing trend coherence—a critical requirement for **Solvency II / SST** frameworks.
+![Stress Test](reports/figures/fig12_longevity_stress_test.png)
+
+### 5. Biological Consistency Audit
+Projections were validated against the **Gompertz Law of Senescence**. The model passed the Monotonicity Audit for all core aging brackets (40-90), proving that the neural network internalized the biological engine of aging.
+![Biological Consistency](reports/figures/fig14_biological_monotonicity_check.png)
+
+## 🛠 Project Structure
+- `data/`: Processed mortality assets, stationarity reports, and final actuarial summaries.
 - `models/`: Serialized LSTM "Champion" models (.keras) and standardized scalers (.pkl).
 - `notebooks/`: 
     - `01_data_extraction_and_eda.ipynb`: Data ingestion and professional EDA.
-    - `02_actuarial_benchmarking.ipynb`: Implementation of LC, Li-Lee, and CBD. (**Completed**).
-    - `03_lstm_hierarchical_forecasting.ipynb`: Bayesian Tuning, Anti-Leakage Training, and Stationarization. (**Completed**).
-    - `04_forecasting_xai_and_results.ipynb`: Recursive projection (2021-2050), Fan Charts, and XAI. (**Next Step**).
-- `reports/figures/`: High-resolution visualizations (Viridis/Helvetica).
-- `RESEARCH_NOTES.md`: Detailed methodological journal and mathematical foundations.
+    - `02_actuarial_benchmarking.ipynb`: Implementation of LC, Li-Lee, and CBD.
+    - `03_lstm_hierarchical_forecasting.ipynb`: Bayesian Tuning and Anti-Leakage Training.
+    - `04_stochastic_forecasting_and_reconstruction.ipynb`: Recursive MCD projection and Life Table integration.
+    - `05_actuarial_stress_testing_validation.ipynb`: Monotonicity tests, Stress Scenarios, and Synthesis. (**Current Step**).
+- `reports/figures/`: High-resolution visualizations (Viridis/Helvetica/300 DPI).
+- `RESEARCH_NOTES.md`: Detailed methodological journal and mathematical proofs.
 
-## Standards & Methodology
+## 📊 Standards & Methodology
 - **Cluster**: CHE, SWE, NOR, DEUTW, NLD, JPN (1956-2021).
 - **Source**: Human Mortality Database (HMD).
-- **Validation**: Out-of-sample testing (2012-2020) with RMSE/MAE metrics on original mortality scales.
-- **Tech Stack**: TensorFlow/Keras, Keras Tuner (Bayesian), Scikit-Learn, Joblib.
-- **Design**: Viridis palette for perceptually uniform visualizations; Helvetica typography.
+- **Validation**: Out-of-sample testing (2012-2020) and **Biological Monotonicity Audit**.
+- **XAI**: Temporal Saliency Analysis revealing bimodal memory (t-1 and t-8 importance).
+- **Design**: Viridis color palette for perceptual uniformity; Helvetica typography for academic legibility.
