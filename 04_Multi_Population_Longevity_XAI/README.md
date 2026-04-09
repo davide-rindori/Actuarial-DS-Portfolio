@@ -6,8 +6,8 @@ This repository contains the complete research pipeline for forecasting mortalit
 ## 🎯 Research Objectives
 - **Neural Innovation**: Implementing a Bayesian-optimized LSTM with **Monte Carlo Dropout (MCD)** for stochastic longevity forecasting.
 - **Actuarial Benchmarking**: Direct comparison against **Li-Lee (2005)** and **CBD (2006)** models.
-- **Explainability (XAI)**: Decompressing the "Black Box" via Temporal Saliency and Gradient-based importance.
-- **Regulatory Readiness**: Testing model resilience through Actuarial Stress Tests (Breakthrough Scenarios) and Biological Consistency Audits.
+- **Explainability (XAI)**: Decompressing the "Black Box" via Temporal Saliency and **Gradient-based Saliency Analysis**.
+- **Regulatory & Financial Utility**: Quantifying capital requirements (**SCR**) and pricing **Longevity Swaps** to meet **SST/Solvency II** standards.
 
 ## 🚀 Key Innovations & Results
 
@@ -22,13 +22,17 @@ Utilizing MC Dropout, the model generates 1,000 stochastic trajectories. Unlike 
 The results confirm a **Catch-up Effect**: countries starting from a lower baseline (e.g., West Germany) exhibit steeper improvement slopes, converging toward a shared biological "Frontier" (~85.2 years for CHE/JPN) by 2050.
 ![Convergence Map](reports/figures/fig13_final_convergence_map.png)
 
-### 4. Actuarial Stress Testing
-The model was subjected to a **10% Mortality Shock** (Medical Breakthrough scenario). The LSTM demonstrated high resilience, accepting the shock as a new structural baseline without losing trend coherence—a critical requirement for **Solvency II / SST** frameworks.
-![Stress Test](reports/figures/fig12_longevity_stress_test.png)
+### 4. Regulatory Capital & Tail Risk (SCR)
+The model provides a robust framework for calculating the **Solvency Capital Requirement (SCR)**. For Switzerland (SST), the LSTM identifies a Risk Margin of **+0.089 years** (ES 99.0%), demonstrating that neural-based tail risk is more concentrated and less prone to "fat-tail" explosions than traditional RWD models.
+![Tail Risk Analysis](reports/figures/fig15_longevity_tail_risk.png)
 
-### 5. Biological Consistency Audit
-Projections were validated against the **Gompertz Law of Senescence**. The model passed the Monotonicity Audit for all core aging brackets (40-90), proving that the neural network internalized the biological engine of aging.
-![Biological Consistency](reports/figures/fig14_biological_monotonicity_check.png)
+### 5. Financial Utility: Longevity Swap Pricing
+By transforming mortality rates into discounted cash flows, the model prices a 30-year **Longevity Swap** (Cohort 65). The analysis reveals a **Median NPV of ~21,280 CHF** (per 1M Notional) for Switzerland, proving that classical models systematically underestimate frontier longevity risk by approximately **2.1%**.
+![Swap Pricing](reports/figures/fig17_longevity_swap_pricing.png)
+
+### 6. Statistical Exhaustiveness: Lexis Maps
+Residual analysis via **Lexis Maps** (2012-2020) confirms the absence of "Ghost Patterns" or uncaptured cohort effects. The model correctly isolates the 2020 pandemic shock as a transitory period-effect without contaminating the long-term biological trend.
+![Lexis Map](reports/figures/fig16_lexis_map_residuals_CHE.png)
 
 ## 🛠 Project Structure
 - `data/`: Processed mortality assets, stationarity reports, and final actuarial summaries.
@@ -38,7 +42,7 @@ Projections were validated against the **Gompertz Law of Senescence**. The model
     - `02_actuarial_benchmarking.ipynb`: Implementation of LC, Li-Lee, and CBD.
     - `03_lstm_hierarchical_forecasting.ipynb`: Bayesian Tuning and Anti-Leakage Training.
     - `04_stochastic_forecasting_and_reconstruction.ipynb`: Recursive MCD projection and Life Table integration.
-    - `05_actuarial_stress_testing_validation.ipynb`: Monotonicity tests, Stress Scenarios, and Synthesis. (**Current Step**).
+    - `05_actuarial_stress_testing_and_finance.ipynb`: Monotonicity, Lexis Maps, and **Longevity Swap Pricing**.
 - `reports/figures/`: High-resolution visualizations (Viridis/Helvetica/300 DPI).
 - `RESEARCH_NOTES.md`: Detailed methodological journal and mathematical proofs.
 
@@ -46,5 +50,6 @@ Projections were validated against the **Gompertz Law of Senescence**. The model
 - **Cluster**: CHE, SWE, NOR, DEUTW, NLD, JPN (1956-2021).
 - **Source**: Human Mortality Database (HMD).
 - **Validation**: Out-of-sample testing (2012-2020) and **Biological Monotonicity Audit**.
-- **XAI**: Temporal Saliency Analysis revealing bimodal memory (t-1 and t-8 importance).
+- **XAI**: Bimodal memory discovery (importance peaks at t-1 and t-8).
+- **Financials**: 2% Risk-free rate; SST (Expected Shortfall) and Solvency II (VaR) standards.
 - **Design**: Viridis color palette for perceptual uniformity; Helvetica typography for academic legibility.
