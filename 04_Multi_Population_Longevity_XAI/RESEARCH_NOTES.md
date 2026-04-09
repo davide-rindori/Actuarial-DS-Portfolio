@@ -508,7 +508,7 @@ The XAI results reveal a distinct Bimodal Importance distribution, which explain
 
 ### 12.3 Research Insights: Expected vs. Discovered Patterns
 - **Discovery of Cyclical Memory**: The high importance of lag t-8 was an **unexpected discovery**. While traditional models assume the most recent data is always the most relevant, the LSTM proves that longevity trends possess a "memory effect" where older structural shifts continue to influence future variations.
-- **Justification for Lookback Window**: The non-zero importance at t-10 (6.4%) validates the choice of a 10-year sliding window. Had the importance dropped to zero earlier, a shorter window would have sufficed; instead, the results confirm that the model utilizes the entire historical context provided.
+- **Justification for Lookback Window**: The non-zero importance at t-10 (6.4%) validates the choice of a 10-year sliding window. Had the importance dropped to zero earlier, a shorter window would have sufficed; invece, the results confirm that the model utilizes the entire historical context provided.
 - **Structural Integrity**: This XAI profile explains the non-linear "rhythms" observed in the Fan Charts. By balancing t-1 (reactive) and t-8 (structural), the LSTM avoids being over-influenced by single-year anomalies (like the 2020 COVID shock), using the deep memory to pull the forecast back toward the biological baseline.
 
 ## 13. Actuarial Validation and Synthesis (Notebook 05)
