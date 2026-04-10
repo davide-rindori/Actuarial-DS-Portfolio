@@ -1,14 +1,14 @@
 # Research Notes: Multi-Population Longevity Forecasting
 
 ## 1. Data Selection & Preprocessing
-- **The Mortality Matrix ($m_{x,t}$)**: The fundamental block.
+- **The Mortality Matrix ($m_{x,t}$)**: The fundamental block of our research.
     - *Definition*: Each element represents the Central Death Rate, calculated as $m_{x,t} = D_{x,t} / E_{x,t}$, where $D$ is the number of deaths and $E$ is the exposure (average population at risk) for age $x$ in year $t$.
     - *Structure*: Rows ($x$) represent ages (0-90), columns ($t$) represent years (1956-2021).
 - **Logarithmic Transformation ($\ln(m_{x,t})$)**:
     - *Linearization*: Human mortality follows an exponential growth with age (Gompertz Law). Taking the natural logarithm transforms this into a near-linear relationship, making it suitable for SVD-based modeling.
     - *Positivity Guarantee*: Modeling mortality in the log-domain ensures that when we project back ($e^{\ln(m)}$), the predicted mortality rates are strictly positive, avoiding the biological impossibility of negative death rates.
-- **Cluster**: CHE, SWE, NOR, DEUTW, NLD, JPN.
-- **Time Window**: 1956-2021. 
+- **Cluster**: CHE (Switzerland), SWE (Sweden), NOR (Norway), DEUTW (West Germany), NLD (Netherlands), and JPN (Japan).
+- **Time Window**: 1956-2021.
     - *Decision*: We truncated the historical series (which for SWE/CHE are much longer) to include West Germany (DEUTW), ensuring a more representative European cluster.
     - *Technical Note*: A common time window is a mathematical prerequisite for the Li-Lee Common Factor Model to calculate a balanced average trend across all populations.
 - **Age Range**: 0-90.
@@ -17,8 +17,8 @@
     - *Reasoning*: Smaller populations (e.g., Norway) occasionally report zero deaths for specific age/year cells. Since $\ln(0)$ is undefined, this epsilon ensures numerical stability during Singular Value Decomposition (SVD).
 
 ### 1.1 Cluster Rationale (Coherence vs. Volume)
-- **Why 6 countries?**: While increasing the number of populations (e.g., adding Denmark, Austria, or Belgium) might reduce statistical variance, it risks "trend dilution." 
-- **The "Pure Signal" Strategy**: We selected a "High-Longevity Gold Standard Cluster." Including countries like the USA or UK would introduce structural breaks (e.g., the opioid crisis or distinct social health shocks) that contaminate the "frontier" mortality signal shared by the selected nations.
+- **Why 6 countries?**: While increasing the number of populations (e.g., adding Denmark, Austria, or Belgium) might reduce statistical variance, it risks "trend dilution".
+- **The "Pure Signal" Strategy**: We selected a "High-Longevity Gold Standard Cluster". Including countries like the USA or UK would introduce structural breaks (e.g., distinct social health shocks) that contaminate the "frontier" mortality signal shared by the selected nations.
 - **Data Quality**: Countries like SWE, CHE, and JPN possess the most reliable long-term historical records in the Human Mortality Database (HMD).
 - **XAI Benefit**: A focused, high-performing cluster allows for clearer interpretability. In the future LSTM/XAI phase, mapping reciprocal influences is more effective when the underlying populations belong to a coherent socio-economic and medical system.
 
@@ -30,7 +30,7 @@
 - **Japan's Catch-up**: Japan started with the highest mortality in 1956 but achieved the fastest rate of improvement, crossing all other countries by the 1980s to become the global longevity leader.
 
 ## 3. Lee-Carter Baseline (Independent Modeling)
-- **Mathematical Framework**: $\ln(m_{x,t}) = a_x + b_x k_t + \epsilon_{x,t}$
+- **Mathematical Framework**: $\ln(m_{x,t}) = a_x + b_x k_t + \epsilon_{x,t}$.
 - **Parameter Extraction via SVD**:
     1. **$a_x$ (Age Profile)**: Calculated as the mean of log-mortality over time for each age: $a_x = \frac{1}{T} \sum_t \ln(m_{x,t})$. It represents the "biological baseline" of each country.
     2. **Centering**: We subtract $a_x$ from the matrix to isolate the time-varying components.
@@ -39,17 +39,17 @@
         - $b_x$ (Age Sensitivity) is derived from the first left singular vector ($U$).
     4. **$\epsilon_{x,t}$**: The residual representing noise or higher-order dynamics not captured by the first principal component.
 - **Identifiability Constraints**: To avoid infinite combinations of $b_x$ and $k_t$ yielding the same product, we impose $\sum_x b_x = 1$. This "anchors" the sensitivity scale, ensuring $k_t$ captures the full magnitude of the time trend.
-- **Core Limitation**: Independent modeling allows for "divergent forecasts," where geographically and socio-economically similar countries (like Sweden and Norway) could reach biologically implausible differences in future life expectancy.
+- **Core Limitation**: Independent modeling allows for "divergent forecasts," where geographically and socio-economically similar countries could reach biologically implausible differences in future life expectancy.
 
 ## 4. Multi-Population Strategy: Li-Lee (2005)
 - **The Theory**: Li-Lee expands Lee-Carter by assuming mortality is composed of a **Common Factor** (shared by the cluster) and a **Specific Factor** (local deviation).
-- **Mathematical Framework**: $\ln(m_{x,t,i}) = a_{x,i} + B_x K_t + b_{x,i} k_{t,i} + \epsilon_{x,t,i}$
+- **Mathematical Framework**: $\ln(m_{x,t,i}) = a_{x,i} + B_x K_t + b_{x,i} k_{t,i} + \epsilon_{x,t,i}$.
 
 ### 4.1 Common Factor Extraction
 - **The Consensus Matrix**: Computed by averaging log-mortality matrices across all $N$ countries: $\bar{M} = \frac{1}{N} \sum_i \ln(m_{x,t,i})$. This represents the "Super-Population" trend.
 - **Foundation**: $K_t$ and $B_x$ are extracted via SVD from this average matrix.
-- **Constraint ($\sum B_x = 1$)**: Crucial for cross-cluster interpretability. It ensures that a unit change in $K_t$ reflects a unit change in the cluster's average log-mortality. Without this, $K_t$ would be unscalable and incomparable.
-- **Denoising Effect**: The Common Factor acts as a robust signal, filtering out local anomalies (like Norway's volatility).
+- **Constraint ($\sum B_x = 1$)**: Crucial for cross-cluster interpretability. It ensures that a unit change in $K_t$ reflects a unit change in the cluster's average log-mortality.
+- **Denoising Effect**: The Common Factor acts as a robust signal, filtering out local anomalies.
 - **Observation on Deceleration**: The common trend confirms that the post-2011 deceleration is a systemic shift across the entire cluster.
 
 ### 4.2 Country-Specific Factors (Specific Residuals)
@@ -64,354 +64,294 @@
     - **FAIL (Non-Stationary)**: Switzerland (0.76), Sweden (0.92), West Germany (0.94), Netherlands (0.10).
     - **PASS (Stationary)**: Norway (0.00), Japan (0.04).
 - **Solving the Paradox**: 
-    - The Augmented Dickey-Fuller (ADF) test measures the **speed of mean reversion** (the force pulling the series back toward zero), not visual stability.
-    - **The Inertia Problem**: In countries like SWE or CHE, deviations from the common trend are highly persistent (high autocorrelation). Even if they move slowly, they do not "rush" back to zero. This is a structural flaw in the Li-Lee assumption: deviations are not merely noise, but persistent local trends.
-    - **The Elasticity of Volatiles**: Paradoxically, NOR and JPN pass the test because their movements are more "reactive." When they drift away, they tend to return or cross the mean with enough momentum to allow the test to detect stationarity.
+    - The Augmented Dickey-Fuller (ADF) test measures the **speed of mean reversion**, not visual stability.
+    - **The Inertia Problem**: In countries like SWE or CHE, deviations from the common trend are highly persistent. Even if they move slowly, they do not "rush" back to zero. This is a structural flaw in the Li-Lee assumption: deviations are persistent local trends.
+    - **The Elasticity of Volatiles**: Paradoxically, NOR and JPN pass the test because their movements are more "reactive". When they drift away, they tend to return or cross the mean with enough momentum to allow the test to detect stazionarity.
 - **Research Implication**:
-    - The Li-Lee model mandates stationarity to ensure "coherence" (no long-term divergence). Our results prove that for "core" European countries, this coherence is a mathematical imposition that contradicts the data. 
-    - This creates the perfect entry point for the **LSTM**: while actuarial models are forced to "ignore" these persistent trends to maintain coherence, Deep Learning can model this underlying structure, providing more accurate forecasts without artificial mean-reversion constraints.
+    - The Li-Lee model mandates stationarity to ensure "coherence". Our results prove that for "core" European countries, this coherence is a mathematical imposition that contradicts the data. 
+    - This creates the perfect entry point for the **LSTM**: while actuarial models are forced to "ignore" these persistent trends, Deep Learning can model this underlying structure.
 
 ## 4.4 Confirmatory Stationarity Analysis: ADF vs KPSS (Cell 2.6b)
 To verify the validity of the ADF results, we performed a **Conflict Analysis** by cross-referencing the results with the KPSS test ($H_0$: Series is Stationary).
 
 | Country | ADF (H0: Non-Stat) | KPSS (H0: Stat) | Status | Statistical Interpretation |
 | :--- | :--- | :--- | :--- | :--- |
-| **Norway** | **PASS** | **PASS** | **Safe** | Truly stationary; high "elasticity" (reverts quickly after shocks). |
-| **Sweden** | **FAIL** | **FAIL** | **Unit Root** | Pure non-stationarity; the country is "divorcing" from the common trend. |
-| **W. Germany**| **FAIL** | **FAIL** | **Unit Root** | Persistent structural drift; fails both criteria for stationarity. |
-| **Japan** | **PASS** | **FAIL** | **Conflict** | Grey Zone; high volatility masks a long-term non-linear trend. |
-| **Switzerland**| **FAIL** | **PASS** | **Inertial** | High autocorrelation; behaves like a Random Walk without clear trend. |
+| **Norway** | **PASS** | **PASS** | **Safe** | Truly stationary; high "elasticity" (reverts quickly). |
+| **Sweden** | **FAIL** | **FAIL** | **Unit Root** | Pure non-stationarity; "divorcing" from the common trend. |
+| **W. Germany**| **FAIL** | **FAIL** | **Unit Root** | Persistent structural drift; fails both criteria. |
+| **Japan** | **PASS** | **FAIL** | **Conflict** | Grey Zone; volatility masks a non-linear trend. |
+| **Switzerland**| **FAIL** | **PASS** | **Inertial** | High autocorrelation; behaves like a Random Walk. |
 
 - **Critical Observations**:
-    - **The Sweden/Germany Unit Root**: Both tests agree that for these countries, the deviation from the cluster mean is **not noise**, but a persistent local trend. Li-Lee would produce biased forecasts by forcing a return to the mean where no statistical evidence of reversion exists.
-    - **The Japan Conflict**: Japan passes the ADF (fast local reversion) but fails the KPSS (presence of a long-term trend). This suggests Japan is "Trend-Stationary": it has a pull toward its own local mean, but that mean is drifting drastically away from the cluster.
-    - **The Persistence Problem**: This analysis proves that linear actuarial models are filtering out "predictable signals" by treating them as "random noise." This information gap is what the LSTM architecture is designed to fill.
+    - **The Sweden/Germany Unit Root**: Both tests agree that for these countries, the deviation from the cluster mean is a persistent local trend. Li-Lee would produce biased forecasts by forcing a return to the mean.
+    - **The Japan Conflict**: Japan passes the ADF but fails the KPSS. This suggests Japan is "Trend-Stationary": its mean is drifting drastically away from the cluster.
+    - **The Persistence Problem**: This analysis proves that linear actuarial models are filtering out "predictable signals" by treating them as "random noise".
 
 ## 5. Alternative Models & Future Steps
 
 ### 5.1 CBD Implementation Results (Ages 65-90)
-The Cairns-Blake-Dowd model was implemented to analyze mortality dynamics in advanced age groups, where SVD-based models (such as Lee-Carter) may suffer from excessive volatility.
-- **Factor 1 ($\kappa_t^{(1)}$)**: Results confirm a constant and consistent decline in the overall level of mortality for all countries in the cluster. Japan exhibits the most aggressive decline, moving from the highest intercept value in 1956 to the lowest in 2020, systematically surpassing European benchmarks.
-- **Factor 2 ($\kappa_t^{(2)}$)**: The analysis reveals a "steepening" phenomenon of the mortality curve. While general mortality decreases, the biological aging rate appears to accelerate, concentrating deaths at increasingly advanced ages.
-- **Non-Linear Dynamics**: High volatility and divergent trajectories in Factor 2 (particularly Japan's peak in the 80s-90s and Switzerland's recent surge) confirm that the "aging slope" is an unstable parameter, difficult to capture with standard linear projections.
+The Cairns-Blake-Dowd model was implemented to analyze mortality dynamics in advanced age groups.
+- **Factor 1 ($\kappa_t^{(1)}$)**: Results confirm a consistent decline in the overall level of mortality. Japan exhibits the most aggressive decline, systematically surpassing European benchmarks.
+- **Factor 2 ($\kappa_t^{(2)}$)**: The analysis reveals a "steepening" phenomenon of the mortality curve. The biological aging rate appears to accelerate, concentrating deaths at advanced ages.
+- **Non-Linear Dynamics**: High volatility in Factor 2 confirm that the "aging slope" is an unstable parameter, difficult to capture with standard linear projections.
 
 ### 5.2 Synthesis of Actuarial Benchmarking (Notebook 02)
-At the conclusion of the benchmarking phase, three fundamental criticalities were identified that justify the evolution toward Deep Learning:
-1. **Stationarity Breach**: ADF/KPSS tests demonstrated that residuals from multi-population models (Li-Lee) exhibit unit roots and persistent drifts, violating classical statistical coherence assumptions.
-2. **Structural Breaks**: The post-2011 mortality deceleration is a systemic signal that linear models tend to underestimate or interpret as transitory noise.
-3. **Parameter Drift**: CBD parameters show that the rotation of the mortality curve (aging slope) follows non-linear dynamics requiring a more complex historical memory for accurate forecasting.
+Three fundamental criticalities were identified:
+1. **Stationarity Breach**: Residuals from Li-Lee exhibit unit roots and persistent drifts.
+2. **Structural Breaks**: The post-2011 mortality deceleration is a systemic signal linear models underestimate.
+3. **Parameter Drift**: CBD parameters show that the rotation of the mortality curve follows non-linear dynamics.
 
 ### 5.3 LSTM (Deep Learning) & XAI
-- **Proposed Innovation**: Utilization of Long Short-Term Memory (LSTM) Recurrent Neural Networks, specifically designed to capture long-term dependencies and manage non-stationary time series.
-- **Research Goal**: To determine if an LSTM can implicitly learn both the "Common Factor" and the "Specific Drifts" (persistent residuals) identified empirically. The objective is to outperform actuarial benchmarks by providing forecasts more resilient to the structural changes seen post-2011.
-- **Explainability (XAI)**: The integration of interpretability techniques (such as SHAP or Integrated Gradients) will allow us to "open the black box," mapping how a country's trends (e.g., the Japanese miracle) influence the projections of other cluster members, transforming a predictive model into a rigorous tool for demographic analysis.
+- **Proposed Innovation**: Utilization of Long Short-Term Memory (LSTM) Recurrent Neural Networks to capture long-term dependencies and manage non-stationary time series.
+- **Research Goal**: To determine if an LSTM can implicitly learn both the "Common Factor" and the "Specific Drifts".
+- **Explainability (XAI)**: Integration of interpretability techniques (such as SHAP) to "open the black box," mapping cluster member influences.
 
 ## 6. Bridge to Machine Learning: Feature Engineering & Windowing
 
 ### 6.1 Rationale for the "Hybrid" Input Vector
-In Notebook 03, we transition from purely actuarial modeling to Deep Learning by exporting the latent factors from the Li-Lee model ($K_t$ and $k_{t,i}$). 
-- **The "Common Anchor" Strategy**: By including the Common Factor $K_t$ as a feature, we provide the LSTM with a global "clock" of longevity. This ensures the model understands the general direction of the cluster before interpreting local deviations.
-- **CBD as a Strategic Benchmark**: While CBD parameters ($\kappa_t$) were not included in the initial feature set to avoid overfitting on a small sample (55 sequences), the CBD analysis remains a critical "Stress Test" for the LSTM. If the LSTM succeeds in forecasting mortality for the 65-90 age group better than CBD, it proves that neural networks can capture the "Aging Slope" dynamics implicitly through the $k_t$ factors.
+In Notebook 03, we transition to Deep Learning by exporting the latent factors from the Li-Lee model ($K_t$ and $k_{t,i}$). 
+- **The "Common Anchor" Strategy**: By including $K_t$ as a feature, we provide the LSTM with a global "clock". 
+- **CBD as a Strategic Benchmark**: The CBD analysis remains a critical "Stress Test" for the LSTM regarding the 65-90 age group.
 
 ### 6.2 The Sliding Window (Lookback) Approach
-To handle the temporal dependency of mortality, we implemented a supervised learning format using a **10-year lookback period**.
-- **Contextual Memory**: A 10-year window allows the LSTM to identify non-linear patterns (like the post-2011 deceleration) by analyzing a decade of trajectory rather than just the last observed step.
-- **Data Constraints**: This window size was selected to maximize historical context while maintaining a sufficient number of overlapping sequences for training, given the limited 65-year span of the HMD data.
+We utilized a **Sliding Window** (Lookback) approach (10-year sequences) to handle temporal dependency.
+- **Contextual Memory**: A 10-year window allows the LSTM to identify non-linear patterns (like post-2011 deceleration).
 
 ### 6.3 Feature Scaling & Stationarity via First Differences
-- **From Levels to Variations**: To ensure gradient stability and handle non-stationarity, we transitioned from modeling absolute index levels ($K_t$) to **First Differences** ($\Delta K_t$). This stationarizes the series around a zero mean, preventing the "drift bias" common in linear mortality projections.
-- **Standardization (StandardScaler)**: We shifted from MinMax to **Standardization** (fitting a Mean of 0 and Variance of 1 solely on the training set). This provides the LSTM with a stable numerical environment where annual shocks are comparable across decades, regardless of the absolute mortality level.
+- **From Levels to Variations**: To handle non-stationarity, we transitioned to modeling **First Differences** ($\Delta K_t$). 
+- **Standardization (StandardScaler)**: We shifted to **Standardization** (fitting Mean 0, Variance 1 on the training set) to provide a stable numerical environment.
 
 ## 7. Deep Learning Implementation: The Hierarchical LSTM (Notebook 03)
 
 ### 7.1 Architecture Rationale
-- **Multi-Output Strategy**: The network is designed to predict the entire 7-dimensional vector of mortality indices (1 Common + 6 Specific) simultaneously. This forces the model to internalize the reciprocal constraints between the cluster and individual countries.
+- **Multi-Output Strategy**: The network predicts the entire 7-dimensional vector of mortality indices (1 Common + 6 Specific) simultaneously.
 - **Layer Stacking**: We implemented a stacked LSTM (32-16 units) after Bayesian optimization.
-    - *Observation*: Initial attempts with larger networks (64+ units) led to immediate overfitting due to the low sample size (N=46 training sequences). The "shallowing" of the network improved validation stability significantly.
+    - *Observation*: Initial attempts with larger networks led to immediate overfitting due to the low sample size.
 
 ### 7.2 Bayesian Hyperparameter Optimization
-To avoid arbitrary parameter selection, we utilized **Bayesian Optimization** (Keras Tuner) to explore the configuration space.
-- **Search Space**: Number of units, dropout rates, and learning rates.
-- **Optimal Result**: The tuner identified a lean architecture (32/16 units) with a relatively high learning rate (0.01).
-- *Technical Insight**: A higher learning rate was necessary to allow the optimizer to escape local minima in a high-dimensional loss landscape despite the small number of training epochs.
+We utilized **Bayesian Optimization** (Keras Tuner) to explore the configuration space (units, dropout, learning rates).
+- **Optimal Result**: The tuner identified a lean architecture (32/16 units) with a learning rate of 0.01.
 
 ## 8. Methodological Pivots: Fighting Data Leakage & Drift
 
 ### 8.1 The Anti-Leakage Protocol
-A critical refinement was made regarding **Feature Scaling**. 
-- **Standard Protocol (Initial)**: Fit-transform on the entire dataset.
-- **Strict Protocol (Revised)**: Fit the scaler exclusively on the training set (1956-2011) and apply it to the validation set. 
-- *Consequence*: This revealed a massive "Drift Bias." Because mortality post-2011 reached values lower than the 1956-2011 minimum, the `MinMaxScaler` produced out-of-bounds inputs, leading to a failure in convergence (Validation Loss explosion). This "Failure" served as empirical proof of the non-stationarity of the frontier longevity signal.
+A critical refinement was made to fit the scaler exclusively on the training set (1956-2011) and apply it to the validation set. 
+- *Consequence*: This revealed a massive "Drift Bias" where post-2011 mortality reached values lower than the training minimum, proving the non-stationarity of the signal.
 
 ### 8.2 The "First Differences" Pivot ($\Delta K_t$)
-To solve the drift bias identified in the levels, we transitioned to modeling **First Differences** (annual changes) instead of absolute index levels.
-- **Mathematical Rationale**: Modeling $Y_t = K_t - K_{t-1}$ transforms a non-stationary process with drift into a near-stationary process.
-- **Result**: RMSE on the validation set dropped from **21.3** (levels) to **4.7** (differences).
-- **Expectation Realized**: The LSTM proved much more adept at filtering the "volatility noise" of annual variations than at guessing the absolute depth of a persistent drift. This approach aligns the model with standard econometric practices (Unit Root handling).
+To solve the drift bias, we transitioned to modeling **First Differences** (annual changes) instead of absolute levels.
+- **Result**: RMSE on the validation set dropped from **21.3** (levels) to **4.56** (differences).
 
 ## 9. Performance Analysis: Out-of-Sample Validation (2012-2020)
 
 ### 9.1 The "Conservative Bias" Discovery (Fig. 08)
-- **Visual Analysis**: The LSTM forecast on the validation set (2012-2020) shows a smooth, persistent downward trend, whereas the Li-Lee Actuals exhibit erratic volatility and a partial stasis (plateau) around 2017-2020.
-- **Justification for Risk Management**: The LSTM appears to ignore the short-term "stalls" in mortality improvement, treating them as transitory noise. 
-- **Actuarial Implication**: From a Swiss Re or Wüthrich perspective, this model is "Prudently Optimistic" about longevity. It suggests that despite recent slowing, the underlying biological longevity engine is still active. 
+- **Visual Analysis**: The LSTM forecast shows a smooth downward trend, whereas actuals exhibit erratic volatility and a plateau around 2017-2020.
+- **Actuarial Implication**: The model is "Prudently Optimistic," suggesting that fundamental biological longevity drivers remain active. 
 
 ### 9.2 Robustness & Early Stopping
-- **Training Stability**: The model consistently reaches optimal weights around Epoch 10-15. Restoring best weights via Early Stopping prevents the model from "memorizing" the noise of the small training sample.
-- **Conclusion of Notebook 03**: We have achieved a stable, serialized, and peer-reviewable neural model. The next phase (Notebook 04) will focus on recursive forecasting to project these dynamics into 2050 with fan charts.
+- **Training Stability**: The model reaches optimal weights around Epoch 10-15. Early Stopping prevents memorizing noise.
 
 ## 10. Stochastic Forecasting & Inference Strategy (Notebook 04)
 
 ### 10.1 Bayesian LSTM Inference: Monte Carlo Dropout (MCD)
-To address the deterministic nature of standard LSTMs during inference, we implemented **Monte Carlo Dropout**.
-- **Theoretical Foundation**: By keeping Dropout layers active during the prediction phase (`training=True`), the model acts as a Bayesian approximation. This allows us to sample 1,000 distinct trajectories for each time step.
-- **Expectation Realized**: The resulting "Fan Chart" (Fig. 09) exhibits a natural expansion of uncertainty over time. This quantification is critical for solvency frameworks (e.g., SST/Solvency II), where the 99.5th percentile of longevity shocks dictates capital requirements.
+We implemented **Monte Carlo Dropout** to address the deterministic nature of standard LSTMs during inference.
+- **Theoretical Foundation**: By keeping Dropout layers active during the prediction phase, the model acts as a Bayesian approximation, sampling 1,000 trajectories.
+- **Expectation Realized**: The "Fan Chart" (Fig. 09) exhibits a natural expansion of uncertainty over time, critical for solvency frameworks.
 
 ### 10.2 Recursive Forecasting Framework
-Predictions are generated through a recursive feedback loop where each predicted variation ($\Delta K_{t+1}$) is integrated back into the input window for the subsequent step.
-- **Technical Implementation**: We utilized a 10-year sliding window of variations. To ensure numerical stability, we implemented explicit tensor casting and utilized `np.roll` for efficient window updates.
-- **The Pivot to Stochastic Integration**: The model forecasts the *variations*, which are then cumulatively summed (integrated) starting from the last observed level in 2020 ($K_{2020}$).
-- **Resulting Dynamics**: The LSTM median projection avoids the "rigid linearity" of standard Random Walk with Drift models. Instead, it exhibits subtle curvatures and cyclicities learned from the 1956-2020 history.
+Predictions are generated through a recursive feedback loop where each predicted variation ($\Delta K_{t+1}$) is integrated back into the input window.
+- **Technical Implementation**: We used a 10-year sliding window of variations and `np.roll` for updates.
+- **The Pivot to Stochastic Integration**: The model forecasts variations, then cumulatively summed starting from 2020.
 
 ### 10.3 Technical Challenges and Adjustments
-- **Optimizer Mismatch**: Encountered Keras warnings regarding variable loading for optimizers.
-    - *Resolution*: Loaded the model with `compile=False`, as the weights are sufficient for inference and the optimizer state is irrelevant for forecasting.
-- **Input Structure Validation**: Addressed Keras 3 runtime warnings regarding input layer naming by ensuring explicit casting to `tf.float32` and wrapping sequences in a batch-dimensioned tensor.
-- **Computational Overhead**: Generating 30,000 inferences (1,000 simulations $\times$ 30 years) required a progress-monitoring implementation to ensure visibility into the M1 Pro processing status.
+- **Optimizer Mismatch**: Loaded the model with `compile=False` to avoid irrelevant optimizer warnings.
+- **Input Structure Validation**: Ensured explicit casting to `tf.float32` and batch-dimensioned tensors.
 
 ### 10.4 Key Observations: Fan Chart Interpretation (Fig. 09)
-- **Deep Learning Advantage**: Unlike classical Lee-Carter standard projections (which yield a straight line), the LSTM median exhibits non-linear curvatures. Notably, around 2028-2030 and 2045, the model projects subtle "inflections" or rhythmic stalls, suggesting it has internalized historical mortality cycles rather than just assuming a constant drift.
-- **Uncertainty Asymmetry**: The fan chart reveals a higher probability of "longevity shocks" (lower $K_t$ values) compared to mortality spikes. This reflects the structural bias of frontier populations toward continuous improvement.
-- **Drift Stability**: Despite the 30-year recursive horizon, the model does not exhibit divergence or explosive behavior. The median $K_t$ reaches **-123.63** by 2050 (from approx. -60 in 2020). The narrow 95% confidence interval (**[-125.26, -121.87]**) validates the **First Differences Pivot** as the correct methodological choice for long-term demographic stability.
+- **Deep Learning Advantage**: The LSTM median exhibits non-linear curvatures, projecting inflections or rhythmic stalls learned from history.
+- **Uncertainty Asymmetry**: Higher probability of "longevity shocks" (lower $K_t$) compared to mortality spikes.
+- **Drift Stability**: The median $K_t$ reaches **-123.63** by 2050 from approx. -60 in 2020.
 
 ## 11. Demographic Impact: Life Expectancy Reconstruction
 
 ### 11.1 Back-Transformation Methodology
-To translate abstract latent factors into actuarial value, we performed a back-transformation using the baseline age profiles ($a_{x,i}$) and common sensitivities ($B_x$) extracted in Notebook 02.
-- **Actuarial Life Table Implementation**: Predicted log-mortality rates were converted into central death rates ($m_x$), then into probabilities of death ($q_x$). Life expectancy at birth ($e_0$) was calculated via the trapezoidal rule across the 1,000 stochastic trajectories.
+Latent factors were back-transformed into death rates ($m_x$) using baseline age profiles ($a_{x,i}$) and common sensitivities ($B_x$).
+- **Actuarial Life Table**: Calculated life expectancy at birth ($e_0$) via the trapezoidal rule across 1,000 trajectories.
 
 ### 11.2 Cluster-Wide Results and Longevity Convergence
-- **Systemic Longevity Signal**: The cluster-wide projections show a highly coherent improvement trend across all six nations. Gains in life expectancy range between **+3.4 and +3.9 years** by 2050, confirming that the LSTM has captured a systemic longevity "engine" shared by frontier populations.
-- **The Convergence Effect**: Countries starting from a slightly lower baseline, such as West Germany (2020 $e_0$: 80.37), exhibit a faster rate of improvement (+3.92 years) compared to leaders like Switzerland (+3.48 years). This suggests the model implicitly learns a convergence mechanism, where the "laggards" of the cluster gravitate toward the shared technological and medical frontier.
-- **Biological Plausibility**: A median gain of ~3.5 years over three decades is consistent with "Prudent Optimism" in actuarial science. It avoids the implausible exponential explosions often seen in unconstrained linear models, producing a forecast that is both modern and risk-manageable for solvency purposes.
+- **Systemic Longevity Signal**: Gains in $e_0$ range between **+3.43 and +3.92 years** by 2050.
+- **The Convergence Effect**: Countries from lower baselines, such as West Germany ($e_0$ 80.37), exhibit faster improvement (+3.92 years) than leaders like Switzerland (+3.48 years). 
 
 ### 11.3 Case Study: Switzerland (CHE) Findings
-- **Forecast Resilience**: Switzerland projects a median $e_0$ increase from **81.71** in 2020 to **85.19** in 2050. Despite the visible historical deceleration post-2011, the model suggests that the fundamental drivers of longevity remain active.
-- **Sensitivity to 2020 Shocks**: The base year $e_0$ reflects the 2020 mortality shock (COVID-19). The LSTM initiates the forecast from this local minimum and projects a non-linear "recovery" trajectory, interpreting the pandemic as a transitory shock rather than a permanent structural shift.
-- **The "Uncertainty Squeeze"**: Paradoxically, the uncertainty for life expectancy is much narrower than for the $K_t$ factor (95% CI: **[85.11, 85.25]** in 2050). This occurs because $e_0$ is an integral of death rates across all ages; the integration process acts as a statistical smoother, dampening annual factor volatility while preserving the deep demographic trend.
-- **Financial Utility**: For reinsurers (e.g., Swiss Re), these fan charts provide the quantitative foundation for "Longevity Swap" pricing, mapping exactly how much capital is required to cover the 2.5th percentile scenario (where $e_0$ exceeds the median forecast).
+- **Forecast Resilience**: CHE projects a median $e_0$ increase from **81.71** (2020) to **85.19** (2050).
+- **Sensitivity to 2020 Shocks**: Interprets the pandemic as a transitory shock rather than a permanent structural shift.
 
 ### 11.4 Comparative Multi-Country Visualization Analysis (Fig. 10)
-- **The "Parallelism" of Longevity**: Analysis of Figure 10 reveals a striking alignment between Switzerland (purple) and Japan (yellow-green). Despite Japan’s historical status as a longevity leader, the LSTM projects nearly identical trajectories for both populations, converging toward the ~85.2-year mark by 2050. This indicates that the neural network perceives both as "Frontier Leaders" reaching a shared biological and technological ceiling.
-- **Evidence of Catch-up Dynamics (West Germany)**: West Germany (teal) initiates the forecast from a significantly lower baseline but maintains a steeper improvement slope. This serves as visual confirmation of the "Convergence Effect" discussed in Section 11.2, where the model applies a subtle catch-up pressure on "laggard" populations within the cluster.
-- **Expected vs. Disconfirmed Behaviors**:
-    - *Expected*: The "Common Trend Resilience" is fully realized, as all three selected countries move in strict unison, proving the dominance of the shared $K_t$ factor.
-    - *Disconfirmed*: The absolute dominance of Japan was partially disconfirmed; the model suggests the "historical gap" has narrowed significantly, placing CHE and JPN on par for the coming decades.
-- **Non-Linear Rhythms**: Unlike Lee-Carter's rigid linear extrapolation, Figure 10 displays non-linear curvatures—most notably a slight softening of the improvement slope in the late 2020s (2028-2030). This suggests the LSTM has internalized cyclical historical "stalls" and improvement waves, providing a more sophisticated actuarial estimate than standard time-series models.
-
-![e0 Comparative Forecast](reports/figures/fig10_multi_country_e0_forecast.png)
+- **The "Parallelism" of Longevity**: Switzerland and Japan converge toward the ~85.2-year mark by 2050, as the LSTM perceives both as "Frontier Leaders".
+- **Evidence of Catch-up Dynamics (West Germany)**: DEUTW maintains a steeper improvement slope, confirming the "Convergence Effect".
 
 ## 12. Explainable AI (XAI): Deciphering the Black Box (Fig. 11)
 
 ### 12.1 Temporal Saliency Analysis
-To overcome the "Black Box" criticism of Deep Learning in actuarial science, a gradient-based Saliency Analysis was implemented. This technique measures the sensitivity of the 2021-2050 forecast to each of the 10 years in the input lookback window (2011-2020).
-
-![Temporal Feature Importance](reports/figures/fig11_xai_temporal_importance.png)
+Measured sensitivity of the 2021-2050 forecast to each of the 10 years in the input window (2011-2020).
 
 ### 12.2 Bimodal Memory Profile
-The XAI results reveal a distinct Bimodal Importance distribution, which explains the LSTM’s superior stability over classical models:
-1. **Recency Bias (t-1: 21.6%)**: As expected, the most recent observed year has the highest predictive power. This ensures the model is reactive to current mortality levels.
-2. **Deep Contextual Memory (t-8: 20.1%)**: Significantly, the model places almost equal weight on data from 8 years prior. This is a critical finding: the LSTM identifies structural patterns or cyclical echoes that occurred nearly a decade ago to anchor its long-term trajectory.
-3. **The Intermediate "Valle" (t-4 to t-6)**: There is a notable drop in importance for middle-range lags (averaging ~3%). The model essentially filters out these intermediate years as "noise" or transitionary data, focusing instead on the immediate present and the distant past to synthesize its forecast.
+XAI results reveal a distinct **Bimodal Importance** distribution:
+1. **Recency Bias (t-1: 21.6%)**: Most recent observed year has the highest power.
+2. **Deep Contextual Memory (t-8: 20.1%)**: Identifies structural patterns or cyclical echoes from a decade ago.
 
 ### 12.3 Research Insights: Expected vs. Discovered Patterns
-- **Discovery of Cyclical Memory**: The high importance of lag t-8 was an **unexpected discovery**. While traditional models assume the most recent data is always the most relevant, the LSTM proves that longevity trends possess a "memory effect" where older structural shifts continue to influence future variations.
-- **Justification for Lookback Window**: The non-zero importance at t-10 (6.4%) validates the choice of a 10-year sliding window. Had the importance dropped to zero earlier, a shorter window would have sufficed; invece, the results confirm that the model utilizes the entire historical context provided.
-- **Structural Integrity**: This XAI profile explains the non-linear "rhythms" observed in the Fan Charts. By balancing t-1 (reactive) and t-8 (structural), the LSTM avoids being over-influenced by single-year anomalies (like the 2020 COVID shock), using the deep memory to pull the forecast back toward the biological baseline.
+- **Discovery of Cyclical Memory**: High importance of lag t-8 was an unexpected discovery.
+- **Justification for Lookback Window**: Non-zero importance at t-10 (6.4%) validates the 10-year window.
 
 ## 13. Actuarial Validation and Synthesis (Notebook 05)
 
 ### 13.1 Quantitative Benchmarking Results (Table 1)
-The synthesis of stochastic results into Table 1 provides the numerical backbone for the model’s validation across the cluster.
+Synthesis of stochastic results into Table 1.
 
 ### Table 1: Stochastic Longevity Projections Summary (2020-2050)
 
 | Country | Code | e0 (2020) | e0 (2050) Median | 95% CI (2050) | Net Gain (Yrs) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Switzerland** | CHE | 81.71 | 85.19 | [85.11 - 85.25] | +3.48 |
-| **Sweden** | SWE | 81.71 | 85.14 | [85.07 - 85.21] | +3.44 |
-| **Norway** | NOR | 81.53 | 85.05 | [84.97 - 85.12] | +3.52 |
-| **West Germany**| DEUTW | 80.37 | 84.29 | [84.20 - 84.37] | +3.93 |
-| **Netherlands** | NLD | 81.30 | 84.89 | [84.81 - 84.96] | +3.60 |
-| **Japan** | JPN | 81.72 | 85.20 | [85.12 - 85.27] | +3.48 |
-
-**Key Actuarial Observations:**
-- **Convergence Dynamics**: West Germany (DEUTW) exhibits the highest net gain (+3.93 yrs), effectively catching up with the cluster frontier.
-- **Frontier Stability**: The leading populations (CHE and JPN) show remarkably synchronized projections, converging toward a shared biological/technological ceiling of ~85.2 years.
-- **Statistical Precision**: The narrow 95% Confidence Intervals indicate that the life table integration process successfully filters individual stochastic volatility into a stable demographic trend.
+| **Switzerland** | CHE | 81.71 | 85.19 | [85.15 - 85.22] | +3.48 |
+| **Sweden** | SWE | 81.71 | 85.14 | [85.11 - 85.18] | +3.43 |
+| **Norway** | NOR | 81.53 | 85.05 | [85.01 - 85.08] | +3.51 |
+| **West Germany**| DEUTW | 80.37 | 84.29 | [84.25 - 84.33] | +3.92 |
+| **Netherlands** | NLD | 81.30 | 84.89 | [84.85 - 84.93] | +3.59 |
+| **Japan** | JPN | 81.72 | 85.20 | [85.16 - 85.23] | +3.47 |
 
 ### 13.2 Statistical Robustness and Risk Implications
-- **Confidence Interval Stability**: The 95% confidence intervals at 2050 are remarkably narrow (approx. ±0.15 to ±0.20 years). From an actuarial standpoint, this indicates that the integration of age-specific death rates ($m_x$) into the life table acts as a natural variance stabilizer, filtering out short-term stochastic noise from the latent factors ($K_t$).
-- **Prudence vs. Optimism**: A projected gain of ~3.5 years over 30 years is considered "Prudently Optimistic." It avoids the extreme outlier scenarios often produced by unconstrained linear extrapolations, making the LSTM results highly suitable for Solvency frameworks (SST/Solvency II) where capital requirements are driven by realistic yet conservative longevity assumptions.
-- **Baseline Integrity**: The starting values for 2020 correctly incorporate recent mortality shocks (COVID-19), ensuring that the forecast initiates from a grounded, historically accurate level rather than a smoothed theoretical baseline.
+- **Confidence Interval Stability**: Narrow 95% CI (approx. ±0.04 years). 
+- **Prudence vs. Optimism**: A projected gain of ~3.5 years over 30 years is "Prudently Optimistic".
 
 ## 14. Actuarial Stress Testing: Model Resilience (Fig. 12)
 
 ### 14.1 Stress Scenario Rationale: The "Medical Breakthrough" Shock
-To satisfy the requirements of rigorous risk management frameworks (e.g., Swiss Solvency Test), the model was subjected to an exogenous **longevity shock**. In 2026, a deterministic breakthrough is simulated, reducing central death rates ($m_x$) by 10% across the entire population.
-
-![Longevity Stress Test](reports/figures/fig12_longevity_stress_test.png)
+Simulated a breakthrough in 2026 reducing $m_x$ by 10%.
 
 ### 14.2 Technical Observations and Resilience Analysis
-- **Structural Jump vs. Trend Stability**: The shock results in an immediate leap of +1.0 year in life expectancy. Crucially, the LSTM does not exhibit "mean reversion" (returning to the original trend) nor explosive divergence. Instead, it accepts the shock as a new structural baseline and resumes the projected rate of improvement.
-- **Quantifying Longevity Risk**: By 2050, the median life expectancy for Switzerland shifts from 85.19 to 86.19. The "Longevity Surplus Impact" (highlighted in teal in Fig. 12) quantifies the latent liability increase an insurer or pension fund would face under breakthrough conditions.
-- **Risk Management Utility**: This analysis proves the model is **"Policy-Ready."** By demonstrating that the LSTM can handle abrupt perturbations while maintaining temporal coherence, it qualifies as a robust tool for calculating "what-if" scenarios and tail-risk capital requirements.
+- **Structural Jump vs. Trend Stability**: Immediate leap of +1.0 year in life expectancy. Accepts the shock as a new baseline.
+- **Quantifying Longevity Risk**: Median $e_0$ for CHE shifts from 85.19 to 86.19.
 
-### 14.3 Comparative Summary: Baseline vs. Shocked Scenarios
-| Metric | Baseline Forecast (CHE) | Shocked Scenario (Breakthrough) | Delta |
+| Metric | Baseline Forecast (CHE) | Shocked Scenario | Delta |
 | :--- | :--- | :--- | :--- |
 | **Median e0 (2050)** | 85.19 years | 86.19 years | **+1.00 yr** |
-| **Projected Gain** | +3.48 years | +4.48 years | **+1.00 yr** |
-| **Resilience Status** | Stable | Convergent | **High** |
 
 ## 15. Final Consolidation: Multi-Population Convergence (Fig. 13)
 
 ### 15.1 The Longevity Frontier Synthesis
-The final output of the project (Fig. 13) visualizes the median trajectories for all six nations in the cluster.
-
-![Final Convergence Map](reports/figures/fig13_final_convergence_map.png)
+Visualizes median trajectories for all six nations.
 
 ### 15.2 Key Takeaways and Project Conclusions
-- **Implicit Convergence Mechanism**: The LSTM successfully modeled the "Catch-up Effect." West Germany, starting from the lowest baseline, exhibits the steepest trajectory, reducing the gap with frontier leaders (Switzerland/Japan) by 2050.
-- **Non-Linear Dynamics**: Unlike traditional linear extrapolations, the final forecast exhibits subtle rhythmic curvatures. This confirms that the Deep Learning architecture internalized historical cycles of mortality improvement rather than assuming a constant, rigid drift.
-- **Quantification of Risk**: The Actuarial Risk Margin for the primary benchmark (Switzerland) was calculated at **0.0654 years**. This high level of statistical confidence suggests that the multi-population hierarchical approach effectively diversifies local volatility, leaving a stable, shared longevity signal.
-- **Policy Relevance**: The combination of high-fidelity stochastic forecasting, XAI-driven interpretability, and robust stress testing provides a complete framework for modern actuarial valuation and longevity risk management.
+- **Implicit Convergence Mechanism**: West Germany exhibits the steepest trajectory, reducing the gap with leaders.
+- **Quantification of Risk**: Actuarial Risk Margin for Switzerland calculated at **0.0654 years**.
 
 ## 16. Biological Consistency & Monotonicity Audit (Fig. 14)
 
 ### 16.1 Testing Rigor and Gompertzian Compliance
-The final validation step involved a strict Monotonicity Audit to ensure that death rates ($m_x$) non-decrease with age, respecting the biological laws of senescence.
-
-![Biological Monotonicity Check](reports/figures/fig14_biological_monotonicity_check.png)
+Ensured death rates ($m_x$) non-decrease with age. 
+- **Gompertz Consistency**: All nations exhibit near-perfect exponential growth in mortality from age 40 onwards.
 
 ### 16.2 Analysis of Results: PASS vs. FAIL
-- **Gompertz Consistency**: All 6 nations exhibit near-perfect exponential growth in mortality from age 40 onwards, confirming that the LSTM has internalized the fundamental biological engine of aging.
-- **The "Youth Hump" Anomaly**: Switzerland (CHE) and Norway (NOR) triggered a formal `FAIL`. This is attributed to the high sensitivity of the test in the 20-30 age range, where extremely low mortality levels and historical "accidents of youth" create non-monotonic ripples.
-- **Actuarial Verdict**: For the purpose of longevity risk management (ages 65-90), the model is considered **Highly Consistent**. The localized non-monotonicity in young ages does not compromise the stability of life expectancy projections ($e_0$) or the pricing of longevity-linked securities.
+- **FAIL (Young Ages)**: CHE and NOR triggered a FAIL due to low mortality levels and youth accidents creating non-monotonic ripples between 20-30. 
+- **Actuarial Verdict**: For longevity risk (65-90), the model is highly consistent.
 
 ## 17. Regulatory Capital & Full Cluster Tail Risk Analysis (Fig. 15)
 
 ### 17.1 Introduction to Longevity Tail Risk
-In the insurance and pension sectors, "Tail Risk" refers to the probability that reality deviates drastically from the central forecast. For a life insurer, the primary danger is not that life expectancy increases (which is expected and priced), but that it increases **significantly faster** than the capital reserves set aside. To quantify this "extreme" danger, regulatory bodies use two primary "thermometers":
-
-1.  **Value at Risk (VaR 99.5%)**: The standard for **Solvency II**. It identifies the maximum longevity threshold that will not be exceeded in 99.5% of cases. It is a "threshold" measure.
-2.  **Expected Shortfall (ES 99.0%)**: The standard for the **Swiss Solvency Test (SST)**. It is more stringent: rather than just identifying a threshold, it calculates the *average* of all worst-case scenarios (the top 1% tail) that exceed the threshold.
+Quantified risk using **VaR 99.5%** (Solvency II) and **Expected Shortfall 99.0%** (SST).
 
 ### 17.2 Results: Table 2 - Full Cluster Breakdown (2050 Horizon)
 
-| Country | Median e0 (2050) | SCR (VaR 99.5%) | SCR (ES 99.0%) | Risk Interpretation |
-| :--- | :--- | :--- | :--- | :--- |
-| **Switzerland** | 85.19 | +0.087 yrs | +0.089 yrs | Frontier Stability |
-| **Japan** | 85.20 | +0.087 yrs | +0.088 yrs | Biological Ceiling? |
-| **Sweden** | 85.14 | +0.087 yrs | +0.088 yrs | Homogeneous Risk |
-| **W. Germany** | 84.29 | +0.100 yrs | +0.101 yrs | Catch-up Uncertainty |
-| **Netherlands** | 84.89 | +0.091 yrs | +0.092 yrs | Institutional Stability |
-| **Norway** | 85.05 | +0.089 yrs | +0.090 yrs | Volatility Legacy |
+| Country | Median e0 (2050) | SCR (VaR 99.5%) | SCR (ES 99.0%) |
+| :--- | :--- | :--- | :--- |
+| **Switzerland** | 85.19 | +0.087 yrs | +0.089 yrs |
+| **Japan** | 85.20 | +0.087 yrs | +0.088 yrs |
+| **Sweden** | 85.14 | +0.087 yrs | +0.088 yrs |
+| **W. Germany** | 84.29 | +0.100 yrs | +0.101 yrs |
+| **Netherlands** | 84.89 | +0.091 yrs | +0.092 yrs |
+| **Norway** | 85.05 | +0.089 yrs | +0.090 yrs |
 
 ### 17.3 Deep Dive & Methodological Observations
-
-#### A. The Frontier Convergence (Expected vs. Discovered)
-- **Expected Pattern**: One might expect different countries to exhibit widely different levels of uncertainty based on population size or historical volatility (e.g., Japan’s large population being more stable than Switzerland’s small one).
-- **Discovered Reality**: The data reveals a striking **Risk Convergence**. Switzerland, Japan, and Sweden share almost identical Solvency Capital Requirements (SCR) of **0.087 years** (approx. 31 days).
-- **Interpretation**: This suggests the LSTM has identified a **"Longevity Frontier."** Once a nation reaches the global vanguard of life expectancy, uncertainty is no longer driven by local idiosyncratic factors but by a shared, systemic "biotechnological ceiling." The risk becomes a global constant for lead populations.
-
-![Longevity Risk Tail Analysis: Switzerland 2050](reports/figures/fig15_longevity_tail_risk.png)
-
-#### B. The German "Catch-up" Penalty
-- **Observation**: West Germany exhibits the highest relative risk in the cluster (+0.100 yrs).
-- **Explanation**: While Switzerland is already "cruising" at the top of the frontier, Germany is in a rapid "catch-up" phase. The neural network perceives that this acceleration is inherently harder to predict with surgical precision. There is a higher probability that Germany might either hit the frontier sooner or overshoot the current trend with more momentum, resulting in a "heavier" tail.
-- **Actuarial Implication**: A German insurer must hold proportionally more capital than a Swiss one, as the trajectory of a "catching-up" population is statistically more volatile than that of a consolidated leader.
-
-#### C. Leptokurtic Distributions: The "Narrow Tail" Advantage
-- **Technical Detail**: Observing **Fig. 15**, the distribution is notably "tall and thin" (Leptokurtic). 
-- **Significance**: The gap between VaR and ES is minimal (less than 0.002 years). This indicates that the distribution lacks "Fat Tails"—there are no extreme "black swan" scenarios where life expectancy explodes to 100+ by 2050 within the model's logic.
-- **Disconfirmed Expectation**: Critics often fear that Deep Learning models produce "unstable" or "explosive" results. Conversely, our LSTM architecture produces extremely controlled and prudent tails, making it highly suitable for conservative financial regulation.
-
-### 17.4 Financial Synthesis: Defining the SCR
-In practical terms, what does an SCR of **+0.089 years** represent?
-It means that to remain "Solvent" (i.e., to survive a crisis that occurs only once every 200 years), a Swiss pension fund must hold enough extra capital to pay for approximately **32 additional days of pension** for every member, beyond the median expectation. 
-
-**Summary**: The LSTM tells us that the future of longevity is like a very stable high-speed train. We know it is accelerating, but the probability of it "derailing" into unmanageable, sudden jumps is extremely low and can be quantified with millimetric precision.
-
+- **Risk Convergence**: CHE, JPN, and SWE share nearly identical SCR of **0.087 years**. This suggests a "Longevity Frontier" where risk is driven by systemic ceilings.
+- **The German "Catch-up" Penalty**: West Germany exhibits the highest relative risk (+0.100 yrs) because rapid catch-up is harder to predict.
+- **Leptokurtic Distributions**: Narrow tails with minimal gap between VaR and ES indicate a lack of "Fat Tails" or explosive scenarios.
 
 ## 18. Statistical Exhaustiveness: Cluster-Wide Lexis Analysis (Fig. 16)
 
 ### 18.1 Understanding the "Residual" logic
-To validate the robustness of the LSTM architecture, we conducted a rigorous out-of-sample residual analysis. In mortality modeling, a "residual" represents the gap between observed historical data and the model's reconstruction. A high-performing model should leave no "structure" in its residuals, meaning the remaining errors should look like random noise (White Noise).
+Verified that residuals (observed - reconstructed) look like random noise. 
 
 ### 18.2 Lexis Map Interpretation: Hunting for Ghost Patterns
-The Lexis Map (Figure 16) visualizes these residuals across two dimensions: Age (Y-axis) and Time (X-axis). 
-- **Expected Outcome**: We sought the total absence of diagonal patterns. In demography, diagonal clusters of errors indicate "Cohort Effects" (specific birth years with anomalous health trajectories) that the model failed to capture.
-- **Discovered Pattern**: The Swiss case study exhibits a remarkably "clean" surface. The vast majority of the age-time space is deep purple (near-zero error). Crucially, the absence of diagonal artifacts confirms that the LSTM successfully internalized complex cohort dynamics, outperforming traditional linear benchmarks.
-- **The 2020 Anomaly**: A distinct vertical band of higher residuals (green/yellow) is visible in the final year of the validation window. This accurately represents the COVID-19 pandemic shock. The fact that this error is strictly localized to a single year confirms the model's ability to distinguish between transitory external shocks and long-term biological trends.
+- **瑞士 Case Study**: Deep purple near-zero error surface. Absence of diagonal artifacts confirms successful internalization of cohort dynamics.
+- **The 2020 Anomaly**: Localized pandemic shock correctly isolated.
 
 ### 18.3 Table 3: Cluster-Wide Performance (2012-2020)
-The Mean Absolute Error (MAE) was extended to the entire 6-country cluster to test for global consistency.
-
-| Country | MAE (Log-Scale) | Statistical Significance |
-| :--- | :--- | :--- |
-| **Netherlands** | 0.0675 | Highest precision; near-perfect trend alignment. |
-| **Japan** | 0.0899 | Exceptional stability for a non-European population. |
-| **W. Germany** | 0.1111 | **Unexpected Result**: High accuracy despite catch-up volatility. |
-| **Switzerland** | 0.1243 | Consistent baseline; primary Case Study. |
-| **Sweden** | 0.1369 | Standard frontier noise levels. |
-| **Norway** | 0.1382 | Slightly higher due to smaller population variance. |
-
-### 18.4 Final Verdict on Model Exhaustiveness
-The consistency of MAE across the cluster (ranging from 0.06 to 0.13) proves that the LSTM's predictive power is not a local artifact but a generalized capability. The model demonstrates "Prudent Intelligence": it captures the deep-seated structural drivers of longevity while correctly identifying recent pandemic-related volatility as a non-structural outlier. This provides the ultimate statistical "green light" for the 2050 projections.
-
+| Country | MAE (Log-Scale) |
+| :--- | :--- |
+| **Netherlands** | 0.0675 |
+| **Japan** | 0.0899 |
+| **W. Germany** | 0.1111 |
+| **Switzerland** | 0.1243 |
+| **Sweden** | 0.1369 |
+| **Norway** | 0.1382 |
 
 ## 19. Explainable AI (XAI): SHAP Multi-Country Influence Mapping (Fig. 18)
 
-### 19.1 Theoretical Framework: Game Theory in Mortality Forecasting
-To overcome the "Black Box" limitation of Deep Learning and satisfy stringent regulatory requirements (e.g., FINMA, EIOPA), we implemented **SHAP (SHapley Additive exPlanations)**. This method is rooted in **Cooperative Game Theory**, where each input feature is treated as a "player" in a game, and the SHAP value represents the fair distribution of the "payout" (the final prediction) among these players. In this multi-population context, SHAP provides a mathematically rigorous way to measure how the historical trajectories of all cluster members contribute to the longevity forecast of a specific target country, such as Switzerland.
+### 19.1 Theoretical Framework
+Utilized **SHAP** to measure fair distribution of prediction impact among players (countries).
 
-![SHAP Influence Mapping: Cluster Drivers for Switzerland](reports/figures/fig18_shap_influence_mapping.png)
-
-### 19.2 Methodology: Feature Flattening and Kernel Estimation
-The application of SHAP to Recurrent Neural Networks (RNNs) like our LSTM presents a dimensional challenge. Standard SHAP explainers are designed for 2D tabular data, while our inputs are 3D tensors (**Samples × Time Steps × Features**). To resolve this, we implemented a specialized high-fidelity pipeline:
-
-* **Model Lineage & Restoration**: The analysis was performed using the **"Champion" LSTM model** (`mortality_lstm_champion.keras`), ensuring that the explanations correspond to the exact parameters used for the final 2050 projections.
-* **Input Stationarity (First Differences)**: To maintain consistency with the training phase, the explainer operates on **First Differences ($\Delta$)** of the mortality factors. This ensures that SHAP is measuring the impact of *changes* in mortality trends rather than absolute levels, which would be biased by non-stationary drifts.
-* **The Temporal Wrapper**: We utilized a "Flattening" strategy where the 10-year lookback window is temporarily reshaped into a single 70-dimensional feature vector (7 features × 10 years). This allows the **SHAP KernelExplainer** to perturb individual data points across the entire temporal horizon while a wrapper function reshapes them back to 3D for the model's internal processing.
-* **Aggregated Granularity**: Post-calculation, the SHAP values were re-aggregated (mean absolute value) across the 10-year horizon. This provides a consolidated "Global Influence" score for each country, effectively answering the question: *"Regardless of the specific year, how much does Country X's data weight on Switzerland's future?"*
+### 19.2 Methodology
+Used a "Flattening" strategy to handle 3D tensors for KernelExplainer. Operated on **First Differences**.
 
 ### 19.3 Results and Observations: The Swiss Hierarchy (Fig. 18)
-The quantitative summary for **Switzerland (CHE)** reveals a structured and biologically plausible hierarchy of drivers based on the mean absolute impact on the 2050 prediction:
+| Input Feature | Mean Abs SHAP Value |
+| :--- | :--- |
+| **West Germany** | **0.02604** |
+| **Common Factor (Kt)**| **0.01549** |
+| **Japan** | **0.01301** |
 
-| Input Feature | Mean Abs SHAP Value | Relative Impact |
-| :--- | :--- | :--- |
-| **West Germany** | **0.02604** | **Highest (100%)** |
-| **Common Factor (Kt)**| **0.01549** | **Secondary (59%)** |
-| **Japan** | **0.01301** | **Significant (50%)** |
-| **Netherlands** | **0.01113** | **Moderate (42%)** |
-| **Switzerland** | **0.01012** | **Self-Influence (38%)** |
-| **Sweden** | **0.00874** | **Low (33%)** |
-| **Norway** | **0.00550** | **Minimal (21%)** |
+- **Regional Lead-Lag (West Germany)**: Dominant predictor due to geographic and healthcare proximity.
+- **Biological Frontier (Japan)**: Acts as a "Biological Compass" defining what is possible.
 
-#### A. The Regional Lead-Lag Discovery (West Germany)
-The most striking result is that **West Germany (DEUTW)** emerged as the dominant predictor, significantly outperforming the Common Factor. This indicates that the LSTM has autonomously discovered a powerful **regional lead-lag correlation**. Due to geographic proximity, shared healthcare benchmarks, and similar socio-economic responses to medical innovation, German mortality trends serve as the most reliable "early warning" signal for Swiss longevity shifts.
+## 20. Performance Benchmarking: The Challenge of Level Reconstruction
 
-#### B. Global Anchor Resilience (Common Factor Kt)
-The **Common Factor (Kt)** maintains a strong second position. This validates our hierarchical modeling strategy: the forecast is not merely a local extrapolation but is firmly anchored to the shared "Global Engine" of longevity improvement common to all advanced nations in the cluster.
+### 20.1 Objective
+Reconstructed absolute **levels** ($K_t$) from predicted variations. 
 
-#### C. The Biological Frontier (Japan)
-**Japan (JPN)** ranks higher than other European peers like Sweden or Norway. This suggests the model uses Japan as a **"Biological Compass."** As the global leader in longevity, Japan's trajectory defines the frontier of what is possible, and the model scales the Swiss forecast accordingly to ensure it remains within a realistic biological ceiling.
+### 20.2 The Problem: Accumulated Integration Drift
+Recursive systematic error accumulates linearly, producing negative improvement scores before correction. 
 
-### 19.4 Expected vs. Disconfirmed Patterns
-* **Expected (Confirmed)**: The high rank of **Kt** confirms that the model has internalized the "Coherent Forecasting" requirement, preventing the Swiss projection from drifting into statistical isolation.
-* **Disconfirmed (Surprise)**: The extreme dominance of **West Germany** was unexpected. While classical actuarial models (like Li-Lee) typically weight countries by population size, the LSTM independently learned that the "German Signal" carries the highest information density for the Swiss target.
-* **Selective Intelligence**: The model shows a clear preference for specific signals. The lower importance of **Norway** and **Sweden** suggests the LSTM effectively filters out Nordic-specific volatility which it deems less applicable to the Central European mortality regime of Switzerland.
+### 20.3 The Solution: Mean-Bias Correction (MBC)
+Implemented a hybrid **Mean-Bias Correction (MBC)**: $Level_{t} = Level_{t-1} + (\Delta_{LSTM} + \text{Bias})$.
 
-### 19.5 Strategic Conclusion for Model Governance
-From a **Regulatory (SST/Solvency II)** and **Academic (arXiv)** perspective, this SHAP analysis provides a formal **"Right to Explanation."** We have demonstrated that the LSTM’s 2050 forecast is not a stochastic artifact but a weighted synthesis of **Regional Proximity (Germany)**, **Global Trends (Kt)**, and **Biological Limits (Japan)**. By transforming a "Black Box" into an auditable evidence-based tool, we bridge the gap between advanced Deep Learning and traditional actuarial accountability.
+### 20.4 Analysis of Official Clean Run Results (Table 20.1)
+
+| Country | Li-Lee RMSE (Level) | LSTM+MBC RMSE | Improvement (%) |
+| :--- | :--- | :--- | :--- |
+| **Japan** | 4.56460 | 3.56607 | **+21.88%** |
+| **Sweden** | 2.75366 | 2.27791 | **+17.28%** |
+| **West Germany** | 0.90146 | 0.81137 | **+9.99%** |
+| **Netherlands** | 2.60239 | 2.42319 | **+6.89%** |
+| **Norway** | 7.98333 | 7.56753 | **+5.21%** |
+| **Switzerland** | 1.31148 | 1.36631 | -4.18% |
+
+### 20.5 Academic Discussion
+- **The Japanese Frontier**: **21.88%** improvement where mortality is most non-linear.
+- **Selective Superiority**: Switzerland remains favorable to Li-Lee (-4.18%) due to historical linearity.
+
+## 21. Lookback Sensitivity Analysis (Robustness Audit)
+
+### 21.1 Methodology and Results
+To validate the choice of a 10-year sliding window, we conducted a sensitivity test across three temporal horizons: 5, 10, and 15 years.
+* **5-Year Window (RMSE: 7.14169)**: Highest error. Suggests that a short horizon is insufficient to capture the persistent structural drifts and the 2011 deceleration effect.
+* **10-Year Window (RMSE: 7.05426)**: Current project standard. Demonstrates stable convergence and captures the bimodal memory (t-1, t-8) identified in XAI.
+* **15-Year Window (RMSE: 6.91248)**: Lowest error. Confirms that mortality dynamics benefit from deep historical context.
+
+### 21.2 Discussion for arXiv and Swiss Re
+While the 15-year window yields the lowest RMSE, the **10-year lookback** remains our "Champion" configuration for two strategic reasons:
+1. **Data Parsimony**: Using a 15-year window sacrifices 5 additional years of training data per country. In a dataset spanning from 1956, this reduction is material.
+2. **Model Generalization**: The marginal improvement of 15y over 10y does not justify the risk of overfitting on very old demographic regimes that may no longer be relevant to current medical standards.
+
+### 21.3 Conclusion
+The analysis proves that the LSTM's superiority is rooted in its ability to process at least a decade of history. This empirical evidence directly addresses the "Model Risk" concerns by proving that the architecture is optimized for the specific "memory depth" of frontier mortality.

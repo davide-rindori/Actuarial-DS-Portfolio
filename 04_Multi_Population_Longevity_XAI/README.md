@@ -5,38 +5,38 @@ This repository contains the complete research pipeline for forecasting mortalit
 
 ## 🎯 Research Objectives
 - **Neural Innovation**: Implementing a Bayesian-optimized LSTM with **Monte Carlo Dropout (MCD)** for stochastic longevity forecasting.
-- **Actuarial Benchmarking**: Direct comparison against **Li-Lee (2005)** and **CBD (2006)** models.
+- **Actuarial Benchmarking**: Direct comparison against **Li-Lee (2005)** and **CBD (2006)** models using a novel **Mean-Bias Correction (MBC)** anchor.
 - **Explainability (XAI)**: Decompressing the "Black Box" via Temporal Saliency and **SHAP (SHapley Additive exPlanations)** for cross-country influence mapping.
 - **Regulatory & Financial Utility**: Quantifying capital requirements (**SCR**) and pricing **Longevity Swaps** to meet **SST/Solvency II** standards.
 
 ## 🚀 Key Innovations & Results
 
-### 1. The First Differences Pivot ($\Delta K_t$)
-To eliminate the "Drift Bias" identified in traditional level-based training, the model was transitioned to forecast **First Differences**. This stationarization strategy improved validation stability (RMSE reduction from 21.3 to 4.7) and ensured long-term projection consistency.
+### 1. Hybrid Benchmarking: The MBC Advantage
+To resolve the integration drift typical of recursive neural networks, we implemented a **Mean-Bias Correction (MBC)**. This hybrid framework outperformed the Li-Lee "Gold Standard" in 83% of the cluster, achieving a **+21.88% RMSE improvement in Japan** and **+17.28% in Sweden**, proving that neural-actuarial hybrids are superior for frontier populations.
 
 ### 2. Stochastic Fan Charts (2021-2050)
-Utilizing MC Dropout, the model generates 1,000 stochastic trajectories. Unlike the rigid linearity of Lee-Carter, the LSTM captures non-linear curvatures and cyclical "stalls" in mortality improvement.
+Utilizing MC Dropout, the model generates 1,000 stochastic trajectories. Unlike the rigid linearity of Lee-Carter, the LSTM captures non-linear curvatures and cyclical "stalls" in mortality improvement, identifying a shared biological frontier.
 ![Stochastic Projection](reports/figures/fig09_kt_stochastic_forecast.png)
 
 ### 3. Longevity Convergence & Frontier Dynamics
-The results confirm a **Catch-up Effect**: countries starting from a lower baseline (e.g., West Germany) exhibit steeper improvement slopes, converging toward a shared biological "Frontier" (~85.2 years for CHE/JPN) by 2050.
+The results confirm a **Catch-up Effect**: countries exhibit steeper improvement slopes converging toward a projected life expectancy ($e_0$) median of **~85.2 years** (CHE/JPN/SWE) by 2050.
 ![Convergence Map](reports/figures/fig13_final_convergence_map.png)
 
 ### 4. Regulatory Capital & Tail Risk (SCR)
-The model provides a robust framework for calculating the **Solvency Capital Requirement (SCR)**. For Switzerland (SST), the LSTM identifies a Risk Margin of **+0.089 years** (ES 99.0%), demonstrating that neural-based tail risk is more concentrated and less prone to "fat-tail" explosions than traditional RWD models.
+The model provides a robust framework for calculating the **Solvency Capital Requirement (SCR)**. For Switzerland (SST), the model identifies a high-precision Risk Margin (95% CI) of **±0.037 years**, satisfying the stringent requirements for internal model validation.
 ![Tail Risk Analysis](reports/figures/fig15_longevity_tail_risk.png)
 
 ### 5. Financial Utility: Longevity Swap Pricing
-By transforming mortality rates into discounted cash flows, the model prices a 30-year **Longevity Swap** (Cohort 65). The analysis reveals a **Median NPV of ~21,280 CHF** (per 1M Notional) for Switzerland, proving that classical models systematically underestimate frontier longevity risk by approximately **2.1%**.
+By transforming mortality rates into discounted cash flows, the model prices a 30-year **Longevity Swap** (Cohort 65). The analysis reveals the distribution of Net Present Value (NPV), providing a superior basis for risk transfer compared to traditional deterministic models.
 ![Swap Pricing](reports/figures/fig17_longevity_swap_pricing.png)
 
-### 6. Statistical Exhaustiveness: Lexis Maps
-Residual analysis via **Lexis Maps** (2012-2020) confirms the absence of "Ghost Patterns" or uncaptured cohort effects. The model correctly isolates the 2020 pandemic shock as a transitory period-effect without contaminating the long-term biological trend.
-![Lexis Map](reports/figures/fig16_lexis_map_residuals_CHE.png)
-
-### 7. XAI: SHAP Influence Mapping
-Utilizing Game Theory-based **SHAP values**, the model provides a "Right to Explanation" by mapping cross-country influences. Results for Switzerland reveal that **West Germany** acts as a primary leading indicator, followed by the **Common Factor (Kt)** and **Japan** (the biological frontier).
+### 6. XAI: SHAP Influence Mapping
+Utilizing Game Theory-based **SHAP values**, the model provides a "Right to Explanation". Results for Switzerland reveal that **West Germany** and the **Common Factor (Kt)** are the primary drivers of local mortality evolution, followed by Japan.
 ![SHAP Influence Mapping](reports/figures/fig18_shap_influence_mapping.png)
+
+### 7. Methodological Robustness: Window Sensitivity
+To justify the choice of a 10-year lookback window, a sensitivity analysis was performed. Results confirm that while 15 years offer marginal gains, the 10-year window provides the optimal balance between capturing deep temporal dependencies (as shown by the t-8 lag importance) and maintaining statistical sample volume.
+![Sensitivity Analysis](reports/figures/fig19_lookback_sensitivity.png)
 
 ## 🛠 Project Structure
 - `data/`: Processed mortality assets, stationarity reports, and final actuarial summaries.
@@ -46,14 +46,16 @@ Utilizing Game Theory-based **SHAP values**, the model provides a "Right to Expl
     - `02_actuarial_benchmarking.ipynb`: Implementation of LC, Li-Lee, and CBD.
     - `03_lstm_hierarchical_forecasting.ipynb`: Bayesian Tuning and Anti-Leakage Training.
     - `04_stochastic_forecasting_and_reconstruction.ipynb`: Recursive MCD projection and Life Table integration.
-    - `05_actuarial_stress_testing_and_finance.ipynb`: Monotonicity, Lexis Maps, SHAP analysis, and **Longevity Swap Pricing**.
+    - `05_actuarial_stress_testing_and_validation.ipynb`: Monotonicity, Lexis Maps, SHAP analysis, and **Lookback Sensitivity**.
 - `reports/figures/`: High-resolution visualizations (Viridis/Helvetica/300 DPI).
 - `RESEARCH_NOTES.md`: Detailed methodological journal and mathematical proofs.
+- `MODEL_PASSPORT.md`: Model governance report for regulatory and internal audit purposes.
 
 ## 📊 Standards & Methodology
 - **Cluster**: CHE, SWE, NOR, DEUTW, NLD, JPN (1956-2021).
 - **Source**: Human Mortality Database (HMD).
-- **Validation**: Out-of-sample testing (2012-2020) and **Biological Monotonicity Audit**.
+- **Validation**: Out-of-sample testing (2012-2020), **Biological Monotonicity Audit**, and **Lookback Sensitivity Analysis**.
+- **Governance**: Comprehensive [MODEL_PASSPORT.md] included for regulatory auditatibility and L&H Risk management.
 - **XAI**: Bimodal temporal memory (t-1, t-8) and SHAP-based feature importance mapping.
 - **Financials**: 2% Risk-free rate; SST (Expected Shortfall) and Solvency II (VaR) standards.
 - **Design**: Viridis color palette for perceptual uniformity; Helvetica typography for academic legibility.
