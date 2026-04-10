@@ -369,3 +369,49 @@ The Mean Absolute Error (MAE) was extended to the entire 6-country cluster to te
 
 ### 18.4 Final Verdict on Model Exhaustiveness
 The consistency of MAE across the cluster (ranging from 0.06 to 0.13) proves that the LSTM's predictive power is not a local artifact but a generalized capability. The model demonstrates "Prudent Intelligence": it captures the deep-seated structural drivers of longevity while correctly identifying recent pandemic-related volatility as a non-structural outlier. This provides the ultimate statistical "green light" for the 2050 projections.
+
+
+## 19. Explainable AI (XAI): SHAP Multi-Country Influence Mapping (Fig. 18)
+
+### 19.1 Theoretical Framework: Game Theory in Mortality Forecasting
+To overcome the "Black Box" limitation of Deep Learning and satisfy stringent regulatory requirements (e.g., FINMA, EIOPA), we implemented **SHAP (SHapley Additive exPlanations)**. This method is rooted in **Cooperative Game Theory**, where each input feature is treated as a "player" in a game, and the SHAP value represents the fair distribution of the "payout" (the final prediction) among these players. In this multi-population context, SHAP provides a mathematically rigorous way to measure how the historical trajectories of all cluster members contribute to the longevity forecast of a specific target country, such as Switzerland.
+
+![SHAP Influence Mapping: Cluster Drivers for Switzerland](reports/figures/fig18_shap_influence_mapping.png)
+
+### 19.2 Methodology: Feature Flattening and Kernel Estimation
+The application of SHAP to Recurrent Neural Networks (RNNs) like our LSTM presents a dimensional challenge. Standard SHAP explainers are designed for 2D tabular data, while our inputs are 3D tensors (**Samples × Time Steps × Features**). To resolve this, we implemented a specialized high-fidelity pipeline:
+
+* **Model Lineage & Restoration**: The analysis was performed using the **"Champion" LSTM model** (`mortality_lstm_champion.keras`), ensuring that the explanations correspond to the exact parameters used for the final 2050 projections.
+* **Input Stationarity (First Differences)**: To maintain consistency with the training phase, the explainer operates on **First Differences ($\Delta$)** of the mortality factors. This ensures that SHAP is measuring the impact of *changes* in mortality trends rather than absolute levels, which would be biased by non-stationary drifts.
+* **The Temporal Wrapper**: We utilized a "Flattening" strategy where the 10-year lookback window is temporarily reshaped into a single 70-dimensional feature vector (7 features × 10 years). This allows the **SHAP KernelExplainer** to perturb individual data points across the entire temporal horizon while a wrapper function reshapes them back to 3D for the model's internal processing.
+* **Aggregated Granularity**: Post-calculation, the SHAP values were re-aggregated (mean absolute value) across the 10-year horizon. This provides a consolidated "Global Influence" score for each country, effectively answering the question: *"Regardless of the specific year, how much does Country X's data weight on Switzerland's future?"*
+
+### 19.3 Results and Observations: The Swiss Hierarchy (Fig. 18)
+The quantitative summary for **Switzerland (CHE)** reveals a structured and biologically plausible hierarchy of drivers based on the mean absolute impact on the 2050 prediction:
+
+| Input Feature | Mean Abs SHAP Value | Relative Impact |
+| :--- | :--- | :--- |
+| **West Germany** | **0.02604** | **Highest (100%)** |
+| **Common Factor (Kt)**| **0.01549** | **Secondary (59%)** |
+| **Japan** | **0.01301** | **Significant (50%)** |
+| **Netherlands** | **0.01113** | **Moderate (42%)** |
+| **Switzerland** | **0.01012** | **Self-Influence (38%)** |
+| **Sweden** | **0.00874** | **Low (33%)** |
+| **Norway** | **0.00550** | **Minimal (21%)** |
+
+#### A. The Regional Lead-Lag Discovery (West Germany)
+The most striking result is that **West Germany (DEUTW)** emerged as the dominant predictor, significantly outperforming the Common Factor. This indicates that the LSTM has autonomously discovered a powerful **regional lead-lag correlation**. Due to geographic proximity, shared healthcare benchmarks, and similar socio-economic responses to medical innovation, German mortality trends serve as the most reliable "early warning" signal for Swiss longevity shifts.
+
+#### B. Global Anchor Resilience (Common Factor Kt)
+The **Common Factor (Kt)** maintains a strong second position. This validates our hierarchical modeling strategy: the forecast is not merely a local extrapolation but is firmly anchored to the shared "Global Engine" of longevity improvement common to all advanced nations in the cluster.
+
+#### C. The Biological Frontier (Japan)
+**Japan (JPN)** ranks higher than other European peers like Sweden or Norway. This suggests the model uses Japan as a **"Biological Compass."** As the global leader in longevity, Japan's trajectory defines the frontier of what is possible, and the model scales the Swiss forecast accordingly to ensure it remains within a realistic biological ceiling.
+
+### 19.4 Expected vs. Disconfirmed Patterns
+* **Expected (Confirmed)**: The high rank of **Kt** confirms that the model has internalized the "Coherent Forecasting" requirement, preventing the Swiss projection from drifting into statistical isolation.
+* **Disconfirmed (Surprise)**: The extreme dominance of **West Germany** was unexpected. While classical actuarial models (like Li-Lee) typically weight countries by population size, the LSTM independently learned that the "German Signal" carries the highest information density for the Swiss target.
+* **Selective Intelligence**: The model shows a clear preference for specific signals. The lower importance of **Norway** and **Sweden** suggests the LSTM effectively filters out Nordic-specific volatility which it deems less applicable to the Central European mortality regime of Switzerland.
+
+### 19.5 Strategic Conclusion for Model Governance
+From a **Regulatory (SST/Solvency II)** and **Academic (arXiv)** perspective, this SHAP analysis provides a formal **"Right to Explanation."** We have demonstrated that the LSTM’s 2050 forecast is not a stochastic artifact but a weighted synthesis of **Regional Proximity (Germany)**, **Global Trends (Kt)**, and **Biological Limits (Japan)**. By transforming a "Black Box" into an auditable evidence-based tool, we bridge the gap between advanced Deep Learning and traditional actuarial accountability.

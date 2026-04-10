@@ -6,7 +6,7 @@ This repository contains the complete research pipeline for forecasting mortalit
 ## 🎯 Research Objectives
 - **Neural Innovation**: Implementing a Bayesian-optimized LSTM with **Monte Carlo Dropout (MCD)** for stochastic longevity forecasting.
 - **Actuarial Benchmarking**: Direct comparison against **Li-Lee (2005)** and **CBD (2006)** models.
-- **Explainability (XAI)**: Decompressing the "Black Box" via Temporal Saliency and **Gradient-based Saliency Analysis**.
+- **Explainability (XAI)**: Decompressing the "Black Box" via Temporal Saliency and **SHAP (SHapley Additive exPlanations)** for cross-country influence mapping.
 - **Regulatory & Financial Utility**: Quantifying capital requirements (**SCR**) and pricing **Longevity Swaps** to meet **SST/Solvency II** standards.
 
 ## 🚀 Key Innovations & Results
@@ -34,6 +34,10 @@ By transforming mortality rates into discounted cash flows, the model prices a 3
 Residual analysis via **Lexis Maps** (2012-2020) confirms the absence of "Ghost Patterns" or uncaptured cohort effects. The model correctly isolates the 2020 pandemic shock as a transitory period-effect without contaminating the long-term biological trend.
 ![Lexis Map](reports/figures/fig16_lexis_map_residuals_CHE.png)
 
+### 7. XAI: SHAP Influence Mapping
+Utilizing Game Theory-based **SHAP values**, the model provides a "Right to Explanation" by mapping cross-country influences. Results for Switzerland reveal that **West Germany** acts as a primary leading indicator, followed by the **Common Factor (Kt)** and **Japan** (the biological frontier).
+![SHAP Influence Mapping](reports/figures/fig18_shap_influence_mapping.png)
+
 ## 🛠 Project Structure
 - `data/`: Processed mortality assets, stationarity reports, and final actuarial summaries.
 - `models/`: Serialized LSTM "Champion" models (.keras) and standardized scalers (.pkl).
@@ -42,7 +46,7 @@ Residual analysis via **Lexis Maps** (2012-2020) confirms the absence of "Ghost 
     - `02_actuarial_benchmarking.ipynb`: Implementation of LC, Li-Lee, and CBD.
     - `03_lstm_hierarchical_forecasting.ipynb`: Bayesian Tuning and Anti-Leakage Training.
     - `04_stochastic_forecasting_and_reconstruction.ipynb`: Recursive MCD projection and Life Table integration.
-    - `05_actuarial_stress_testing_and_finance.ipynb`: Monotonicity, Lexis Maps, and **Longevity Swap Pricing**.
+    - `05_actuarial_stress_testing_and_finance.ipynb`: Monotonicity, Lexis Maps, SHAP analysis, and **Longevity Swap Pricing**.
 - `reports/figures/`: High-resolution visualizations (Viridis/Helvetica/300 DPI).
 - `RESEARCH_NOTES.md`: Detailed methodological journal and mathematical proofs.
 
@@ -50,6 +54,6 @@ Residual analysis via **Lexis Maps** (2012-2020) confirms the absence of "Ghost 
 - **Cluster**: CHE, SWE, NOR, DEUTW, NLD, JPN (1956-2021).
 - **Source**: Human Mortality Database (HMD).
 - **Validation**: Out-of-sample testing (2012-2020) and **Biological Monotonicity Audit**.
-- **XAI**: Bimodal memory discovery (importance peaks at t-1 and t-8).
+- **XAI**: Bimodal temporal memory (t-1, t-8) and SHAP-based feature importance mapping.
 - **Financials**: 2% Risk-free rate; SST (Expected Shortfall) and Solvency II (VaR) standards.
 - **Design**: Viridis color palette for perceptual uniformity; Helvetica typography for academic legibility.
