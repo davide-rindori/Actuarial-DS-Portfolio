@@ -3,13 +3,13 @@
 ## 1. Data Selection & Preprocessing
 - **The Mortality Matrix ($m_{x,t}$)**: The fundamental block of our research.
     - *Definition*: Each element represents the Central Death Rate, calculated as $m_{x,t} = D_{x,t} / E_{x,t}$, where $D$ is the number of deaths and $E$ is the exposure (average population at risk) for age $x$ in year $t$.
-    - *Structure*: Rows ($x$) represent ages (0-90), columns ($t$) represent years (1956-2021).
+    - *Structure*: Rows ($x$) represent ages (0-90), columns ($t$) represent years (1956-2020).
 - **Logarithmic Transformation ($\ln(m_{x,t})$)**:
     - *Linearization*: Human mortality follows an exponential growth with age (Gompertz Law). Taking the natural logarithm transforms this into a near-linear relationship, making it suitable for SVD-based modeling.
     - *Positivity Guarantee*: Modeling mortality in the log-domain ensures that when we project back ($e^{\ln(m)}$), the predicted mortality rates are strictly positive, avoiding the biological impossibility of negative death rates.
 - **Cluster**: CHE (Switzerland), SWE (Sweden), NOR (Norway), DEUTW (West Germany), NLD (Netherlands), and JPN (Japan).
-- **Time Window**: 1956-2021.
-    - *Decision*: We truncated the historical series (which for SWE/CHE are much longer) to include West Germany (DEUTW), ensuring a more representative European cluster.
+- **Time Window**: 1956-2020.
+    - *Decision*: We truncated the historical series (which for SWE/CHE are much longer) to include West Germany (DEUTW), whose HMD records end in 2020, ensuring a more representative European cluster.
     - *Technical Note*: A common time window is a mathematical prerequisite for the Li-Lee Common Factor Model to calculate a balanced average trend across all populations.
 - **Age Range**: 0-90.
     - *Decision*: Capped at 90 to avoid "oldest-old" volatility and small-sample noise in the HMD data. High-age mortality (90+) often suffers from low exposure, leading to erratic $m_x$ values.
@@ -76,11 +76,12 @@ To verify the validity of the ADF results, we performed a **Conflict Analysis** 
 
 | Country | ADF (H0: Non-Stat) | KPSS (H0: Stat) | Status | Statistical Interpretation |
 | :--- | :--- | :--- | :--- | :--- |
-| **Norway** | **PASS** | **PASS** | **Safe** | Truly stationary; high "elasticity" (reverts quickly). |
+| **Norway** | **PASS** | **PASS** | **Stationary** | Truly stationary; high "elasticity" (reverts quickly). |
 | **Sweden** | **FAIL** | **FAIL** | **Unit Root** | Pure non-stationarity; "divorcing" from the common trend. |
 | **W. Germany**| **FAIL** | **FAIL** | **Unit Root** | Persistent structural drift; fails both criteria. |
+| **Netherlands**| **FAIL** | **FAIL** | **Unit Root** | Persistent drift; consistent breach of Li-Lee assumptions. |
 | **Japan** | **PASS** | **FAIL** | **Conflict** | Grey Zone; volatility masks a non-linear trend. |
-| **Switzerland**| **FAIL** | **PASS** | **Inertial** | High autocorrelation; behaves like a Random Walk. |
+| **Switzerland**| **FAIL** | **PASS** | **Conflict** | High autocorrelation; behaves like a Random Walk. |
 
 - **Critical Observations**:
     - **The Sweden/Germany Unit Root**: Both tests agree that for these countries, the deviation from the cluster mean is a persistent local trend. Li-Lee would produce biased forecasts by forcing a return to the mean.
@@ -125,12 +126,12 @@ We utilized a **Sliding Window** (Lookback) approach (10-year sequences) to hand
 
 ### 7.1 Architecture Rationale
 - **Multi-Output Strategy**: The network predicts the entire 7-dimensional vector of mortality indices (1 Common + 6 Specific) simultaneously.
-- **Layer Stacking**: We implemented a stacked LSTM (32-16 units) after Bayesian optimization.
+- **Layer Stacking**: We implemented a stacked LSTM (48-24 units) after Bayesian optimization.
     - *Observation*: Initial attempts with larger networks led to immediate overfitting due to the low sample size.
 
 ### 7.2 Bayesian Hyperparameter Optimization
 We utilized **Bayesian Optimization** (Keras Tuner) to explore the configuration space (units, dropout, learning rates).
-- **Optimal Result**: The tuner identified a lean architecture (32/16 units) with a learning rate of 0.01.
+- **Optimal Result**: The tuner identified a lean architecture (48/24 units) with a learning rate of 0.01.
 
 ## 8. Methodological Pivots: Fighting Data Leakage & Drift
 
@@ -170,7 +171,7 @@ Predictions are generated through a recursive feedback loop where each predicted
 ### 10.4 Key Observations: Fan Chart Interpretation (Fig. 09)
 - **Deep Learning Advantage**: The LSTM median exhibits non-linear curvatures, projecting inflections or rhythmic stalls learned from history.
 - **Uncertainty Asymmetry**: Higher probability of "longevity shocks" (lower $K_t$) compared to mortality spikes.
-- **Drift Stability**: The median $K_t$ reaches **-123.63** by 2050 from approx. -60 in 2020.
+- **Drift Stability**: The median $K_t$ reaches **-123.61** by 2050 from approx. -60 in 2020.
 
 ## 11. Demographic Impact: Life Expectancy Reconstruction
 
@@ -193,7 +194,7 @@ Latent factors were back-transformed into death rates ($m_x$) using baseline age
 ## 12. Explainable AI (XAI): Deciphering the Black Box (Fig. 11)
 
 ### 12.1 Temporal Saliency Analysis
-Measured sensitivity of the 2021-2050 forecast to each of the 10 years in the input window (2011-2020).
+Measured sensitivity of the 2020-2050 forecast to each of the 10 years in the input window (2011-2020).
 
 ### 12.2 Bimodal Memory Profile
 XAI results reveal a distinct **Bimodal Importance** distribution:
@@ -244,7 +245,7 @@ Visualizes median trajectories for all six nations.
 
 ### 15.2 Key Takeaways and Project Conclusions
 - **Implicit Convergence Mechanism**: West Germany exhibits the steepest trajectory, reducing the gap with leaders.
-- **Quantification of Risk**: Actuarial Risk Margin for Switzerland calculated at **0.0654 years**.
+- **Quantification of Risk**: Actuarial Risk Margin for Switzerland calculated at **0.037 years**.
 
 ## 16. Biological Consistency & Monotonicity Audit (Fig. 14)
 
@@ -265,16 +266,16 @@ Quantified risk using **VaR 99.5%** (Solvency II) and **Expected Shortfall 99.0%
 
 | Country | Median e0 (2050) | SCR (VaR 99.5%) | SCR (ES 99.0%) |
 | :--- | :--- | :--- | :--- |
-| **Switzerland** | 85.19 | +0.087 yrs | +0.089 yrs |
-| **Japan** | 85.20 | +0.087 yrs | +0.088 yrs |
-| **Sweden** | 85.14 | +0.087 yrs | +0.088 yrs |
-| **W. Germany** | 84.29 | +0.100 yrs | +0.101 yrs |
-| **Netherlands** | 84.89 | +0.091 yrs | +0.092 yrs |
-| **Norway** | 85.05 | +0.089 yrs | +0.090 yrs |
+| **Switzerland** | 85.19 | +0.048 yrs | +0.050 yrs |
+| **Japan** | 85.20 | +0.048 yrs | +0.050 yrs |
+| **Sweden** | 85.14 | +0.048 yrs | +0.050 yrs |
+| **W. Germany** | 84.29 | +0.055 yrs | +0.057 yrs |
+| **Netherlands** | 84.89 | +0.050 yrs | +0.052 yrs |
+| **Norway** | 85.05 | +0.049 yrs | +0.051 yrs |
 
 ### 17.3 Deep Dive & Methodological Observations
-- **Risk Convergence**: CHE, JPN, and SWE share nearly identical SCR of **0.087 years**. This suggests a "Longevity Frontier" where risk is driven by systemic ceilings.
-- **The German "Catch-up" Penalty**: West Germany exhibits the highest relative risk (+0.100 yrs) because rapid catch-up is harder to predict.
+- **Risk Convergence**: CHE, JPN, and SWE share nearly identical SCR of **0.048 years** (VaR 99.5%). This suggests a "Longevity Frontier" where risk is driven by systemic ceilings.
+- **The German "Catch-up" Penalty**: West Germany exhibits the highest relative risk (+0.055 yrs VaR, +0.057 yrs ES) because rapid catch-up is harder to predict.
 - **Leptokurtic Distributions**: Narrow tails with minimal gap between VaR and ES indicate a lack of "Fat Tails" or explosive scenarios.
 
 ## 18. Statistical Exhaustiveness: Cluster-Wide Lexis Analysis (Fig. 16)
@@ -283,18 +284,18 @@ Quantified risk using **VaR 99.5%** (Solvency II) and **Expected Shortfall 99.0%
 Verified that residuals (observed - reconstructed) look like random noise. 
 
 ### 18.2 Lexis Map Interpretation: Hunting for Ghost Patterns
-- **瑞士 Case Study**: Deep purple near-zero error surface. Absence of diagonal artifacts confirms successful internalization of cohort dynamics.
+- **Switzerland Case Study**: Deep purple near-zero error surface. Absence of diagonal artifacts confirms successful internalization of cohort dynamics.
 - **The 2020 Anomaly**: Localized pandemic shock correctly isolated.
 
 ### 18.3 Table 3: Cluster-Wide Performance (2012-2020)
 | Country | MAE (Log-Scale) |
 | :--- | :--- |
-| **Netherlands** | 0.0675 |
-| **Japan** | 0.0899 |
-| **W. Germany** | 0.1111 |
-| **Switzerland** | 0.1243 |
-| **Sweden** | 0.1369 |
-| **Norway** | 0.1382 |
+| **Netherlands** | 0.0983 |
+| **Sweden** | 0.1198 |
+| **West Germany** | 0.1275 |
+| **Switzerland** | 0.1285 |
+| **Norway** | 0.1367 |
+| **Japan** | 0.1890 |
 
 ## 19. Explainable AI (XAI): SHAP Multi-Country Influence Mapping (Fig. 18)
 
@@ -307,12 +308,16 @@ Used a "Flattening" strategy to handle 3D tensors for KernelExplainer. Operated 
 ### 19.3 Results and Observations: The Swiss Hierarchy (Fig. 18)
 | Input Feature | Mean Abs SHAP Value |
 | :--- | :--- |
-| **West Germany** | **0.02604** |
-| **Common Factor (Kt)**| **0.01549** |
-| **Japan** | **0.01301** |
+| **Japan** | **0.00781** |
+| **Switzerland** | **0.00665** |
+| **Sweden** | **0.00535** |
+| **West Germany** | **0.00486** |
+| **Common Factor (Kt)**| **0.00373** |
+| **Norway** | **0.00317** |
+| **Netherlands** | **0.00188** |
 
-- **Regional Lead-Lag (West Germany)**: Dominant predictor due to geographic and healthcare proximity.
-- **Biological Frontier (Japan)**: Acts as a "Biological Compass" defining what is possible.
+- **Biological Frontier (Japan)**: Dominant predictor, acting as a "Biological Compass" defining the frontier of what is achievable in longevity.
+- **Regional Lead-Lag (West Germany)**: Significant predictor due to geographic and healthcare proximity, though ranked below Japan and Switzerland's own autoregressive signal.
 
 ## 20. Performance Benchmarking: The Challenge of Level Reconstruction
 

@@ -14,7 +14,7 @@ This repository contains the complete research pipeline for forecasting mortalit
 ### 1. Hybrid Benchmarking: The MBC Advantage
 To resolve the integration drift typical of recursive neural networks, we implemented a **Mean-Bias Correction (MBC)**. This hybrid framework outperformed the Li-Lee "Gold Standard" in 83% of the cluster, achieving a **+21.88% RMSE improvement in Japan** and **+17.28% in Sweden**, proving that neural-actuarial hybrids are superior for frontier populations.
 
-### 2. Stochastic Fan Charts (2021-2050)
+### 2. Stochastic Fan Charts (2020-2050)
 Utilizing MC Dropout, the model generates 1,000 stochastic trajectories. Unlike the rigid linearity of Lee-Carter, the LSTM captures non-linear curvatures and cyclical "stalls" in mortality improvement, identifying a shared biological frontier.
 ![Stochastic Projection](reports/figures/fig09_kt_stochastic_forecast.png)
 
@@ -31,7 +31,7 @@ By transforming mortality rates into discounted cash flows, the model prices a 3
 ![Swap Pricing](reports/figures/fig17_longevity_swap_pricing.png)
 
 ### 6. XAI: SHAP Influence Mapping
-Utilizing Game Theory-based **SHAP values**, the model provides a "Right to Explanation". Results for Switzerland reveal that **West Germany** and the **Common Factor (Kt)** are the primary drivers of local mortality evolution, followed by Japan.
+Utilizing Game Theory-based **SHAP values**, the model provides a "Right to Explanation". Results for Switzerland reveal a structured influence hierarchy where **Japan's** biological frontier signal and regional European dynamics (including **West Germany** and the **Common Factor Kt**) jointly drive local mortality projections.
 ![SHAP Influence Mapping](reports/figures/fig18_shap_influence_mapping.png)
 
 ### 7. Methodological Robustness: Window Sensitivity
@@ -45,14 +45,14 @@ To justify the choice of a 10-year lookback window, a sensitivity analysis was p
     - `01_data_extraction_and_eda.ipynb`: Data ingestion and professional EDA.
     - `02_actuarial_benchmarking.ipynb`: Implementation of LC, Li-Lee, and CBD.
     - `03_lstm_hierarchical_forecasting.ipynb`: Bayesian Tuning and Anti-Leakage Training.
-    - `04_stochastic_forecasting_and_reconstruction.ipynb`: Recursive MCD projection and Life Table integration.
-    - `05_actuarial_stress_testing_and_validation.ipynb`: Monotonicity, Lexis Maps, SHAP analysis, and **Lookback Sensitivity**.
+    - `04_forecasting_xai_and_results.ipynb`: Recursive MCD projection and Life Table integration.
+    - `05_actuarial_stress_testing_validation.ipynb`: Monotonicity, Lexis Maps, SHAP analysis, and **Lookback Sensitivity**.
 - `reports/figures/`: High-resolution visualizations (Viridis/Helvetica/300 DPI).
 - `RESEARCH_NOTES.md`: Detailed methodological journal and mathematical proofs.
 - `MODEL_PASSPORT.md`: Model governance report for regulatory and internal audit purposes.
 
 ## 📊 Standards & Methodology
-- **Cluster**: CHE, SWE, NOR, DEUTW, NLD, JPN (1956-2021).
+- **Cluster**: CHE, SWE, NOR, DEUTW, NLD, JPN (1956-2020).
 - **Source**: Human Mortality Database (HMD).
 - **Validation**: Out-of-sample testing (2012-2020), **Biological Monotonicity Audit**, and **Lookback Sensitivity Analysis**.
 - **Governance**: Comprehensive [MODEL_PASSPORT.md] included for regulatory auditatibility and L&H Risk management.

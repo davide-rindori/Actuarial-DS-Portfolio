@@ -9,7 +9,7 @@
 - **Target Population:** High-longevity frontier cluster (CHE, SWE, NOR, DEUTW, NLD, JPN).
 
 ## 2. Methodology Snapshot
-- **Architecture:** Stacked LSTM (32, 16 units) with Bayesian Uncertainty (MC Dropout).
+- **Architecture:** Stacked LSTM (48, 24 units) with Bayesian Uncertainty (MC Dropout).
 - **Stationarity Strategy:** First Differences ($\Delta K_t$) to neutralize linear drift.
 - **Anchor Mechanism:** Mean-Bias Correction (MBC) to align neural variations with long-term actuarial trends.
 
@@ -21,11 +21,11 @@
 ### B. Statistical Robustness
 - **Out-of-Sample Performance:** +21.88% RMSE improvement over Li-Lee in Japan.
 - **Residual Analysis:** Lexis Map confirmed zero cohort-effect leakage.
-- **XAI Audit:** SHAP analysis verified West Germany as the primary leading indicator for Swiss mortality.
+- **XAI Audit:** SHAP analysis revealed a structured cross-country influence hierarchy for Swiss mortality, with Japan's frontier signal and regional European dynamics as key drivers.
 
 ## 4. Risk & Capital Metrics (2050 Forecast)
-- **Switzerland (CHE) SCR (ES 99.0%):** +0.089 years.
-- **Japan (JPN) SCR (ES 99.0%):** +0.088 years.
+- **Switzerland (CHE) SCR (ES 99.0%):** +0.050 years.
+- **Japan (JPN) SCR (ES 99.0%):** +0.050 years.
 - **Observation:** Risk convergence identified at the longevity frontier.
 
 ## 5. Model Robustness & Sensitivity (Clean Run Audit)
