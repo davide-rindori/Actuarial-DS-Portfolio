@@ -126,12 +126,12 @@ We utilized a **Sliding Window** (Lookback) approach (10-year sequences) to hand
 
 ### 7.1 Architecture Rationale
 - **Multi-Output Strategy**: The network predicts the entire 7-dimensional vector of mortality indices (1 Common + 6 Specific) simultaneously.
-- **Layer Stacking**: We implemented a stacked LSTM (48-24 units) after Bayesian optimization.
+- **Layer Stacking**: We implemented a stacked LSTM (32-16 units) after Bayesian optimization. Dropout is fixed at 20% as an architectural constraint for MC Dropout inference.
     - *Observation*: Initial attempts with larger networks led to immediate overfitting due to the low sample size.
 
 ### 7.2 Bayesian Hyperparameter Optimization
 We utilized **Bayesian Optimization** (Keras Tuner) to explore the configuration space (units, dropout, learning rates).
-- **Optimal Result**: The tuner identified a lean architecture (48/24 units) with a learning rate of 0.01.
+- **Optimal Result**: The tuner identified a lean architecture (32/16 units) with a learning rate of 0.001. Dropout was fixed at 0.2 (not tuned) to ensure MC Dropout viability.
 
 ## 8. Methodological Pivots: Fighting Data Leakage & Drift
 
@@ -171,7 +171,7 @@ Predictions are generated through a recursive feedback loop where each predicted
 ### 10.4 Key Observations: Fan Chart Interpretation (Fig. 09)
 - **Deep Learning Advantage**: The LSTM median exhibits non-linear curvatures, projecting inflections or rhythmic stalls learned from history.
 - **Uncertainty Asymmetry**: Higher probability of "longevity shocks" (lower $K_t$) compared to mortality spikes.
-- **Drift Stability**: The median $K_t$ reaches **-123.61** by 2050 from approx. -60 in 2020.
+- **Drift Stability**: The median $K_t$ reaches **-114.86** by 2050 from approx. -60 in 2020.
 
 ## 11. Demographic Impact: Life Expectancy Reconstruction
 
@@ -180,15 +180,15 @@ Latent factors were back-transformed into death rates ($m_x$) using baseline age
 - **Actuarial Life Table**: Calculated life expectancy at birth ($e_0$) via the trapezoidal rule across 1,000 trajectories.
 
 ### 11.2 Cluster-Wide Results and Longevity Convergence
-- **Systemic Longevity Signal**: Gains in $e_0$ range between **+3.43 and +3.92 years** by 2050.
-- **The Convergence Effect**: Countries from lower baselines, such as West Germany ($e_0$ 80.37), exhibit faster improvement (+3.92 years) than leaders like Switzerland (+3.48 years). 
+- **Systemic Longevity Signal**: Gains in $e_0$ range between **+3.06 and +3.49 years** by 2050.
+- **The Convergence Effect**: Countries from lower baselines, such as West Germany ($e_0$ 80.37), exhibit faster improvement (+3.49 years) than leaders like Switzerland (+3.10 years). 
 
 ### 11.3 Case Study: Switzerland (CHE) Findings
-- **Forecast Resilience**: CHE projects a median $e_0$ increase from **81.71** (2020) to **85.19** (2050).
+- **Forecast Resilience**: CHE projects a median $e_0$ increase from **81.71** (2020) to **84.81** (2050).
 - **Sensitivity to 2020 Shocks**: Interprets the pandemic as a transitory shock rather than a permanent structural shift.
 
 ### 11.4 Comparative Multi-Country Visualization Analysis (Fig. 10)
-- **The "Parallelism" of Longevity**: Switzerland and Japan converge toward the ~85.2-year mark by 2050, as the LSTM perceives both as "Frontier Leaders".
+- **The "Parallelism" of Longevity**: Switzerland and Japan converge toward the ~84.8-year mark by 2050, as the LSTM perceives both as "Frontier Leaders".
 - **Evidence of Catch-up Dynamics (West Germany)**: DEUTW maintains a steeper improvement slope, confirming the "Convergence Effect".
 
 ## 12. Explainable AI (XAI): Deciphering the Black Box (Fig. 11)
@@ -196,14 +196,14 @@ Latent factors were back-transformed into death rates ($m_x$) using baseline age
 ### 12.1 Temporal Saliency Analysis
 Measured sensitivity of the 2020-2050 forecast to each of the 10 years in the input window (2011-2020).
 
-### 12.2 Bimodal Memory Profile
-XAI results reveal a distinct **Bimodal Importance** distribution:
-1. **Recency Bias (t-1: 21.6%)**: Most recent observed year has the highest power.
-2. **Deep Contextual Memory (t-8: 20.1%)**: Identifies structural patterns or cyclical echoes from a decade ago.
+### 12.2 Concentrated Mid-Horizon Memory Profile
+XAI results reveal a distinct **Concentrated Importance** distribution:
+1. **Mid-Horizon Peak (t-4: 21.7%)**: The model assigns highest importance to observations approximately 4 years prior, suggesting sensitivity to medium-term structural shifts.
+2. **Distributed Secondary Importance (t-6: 11.5%, t-2: 11.3%, t-3: 11.1%)**: Importance is spread across multiple lags, indicating the model integrates information from the full window.
 
 ### 12.3 Research Insights: Expected vs. Discovered Patterns
-- **Discovery of Cyclical Memory**: High importance of lag t-8 was an unexpected discovery.
-- **Justification for Lookback Window**: Non-zero importance at t-10 (6.4%) validates the 10-year window.
+- **Discovery of Mid-Horizon Concentration**: The dominant importance of lag t-4 suggests the model is particularly sensitive to the post-2011 deceleration signal.
+- **Justification for Lookback Window**: Non-zero importance at t-10 (6.9%) validates the 10-year window.
 
 ## 13. Actuarial Validation and Synthesis (Notebook 05)
 
@@ -214,15 +214,15 @@ Synthesis of stochastic results into Table 1.
 
 | Country | Code | e0 (2020) | e0 (2050) Median | 95% CI (2050) | Net Gain (Yrs) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Switzerland** | CHE | 81.71 | 85.19 | [85.15 - 85.22] | +3.48 |
-| **Sweden** | SWE | 81.71 | 85.14 | [85.11 - 85.18] | +3.43 |
-| **Norway** | NOR | 81.53 | 85.05 | [85.01 - 85.08] | +3.51 |
-| **West Germany**| DEUTW | 80.37 | 84.29 | [84.25 - 84.33] | +3.92 |
-| **Netherlands** | NLD | 81.30 | 84.89 | [84.85 - 84.93] | +3.59 |
-| **Japan** | JPN | 81.72 | 85.20 | [85.16 - 85.23] | +3.47 |
+| **Switzerland** | CHE | 81.71 | 84.81 | [84.80 - 84.82] | +3.10 |
+| **Sweden** | SWE | 81.71 | 84.77 | [84.76 - 84.77] | +3.06 |
+| **Norway** | NOR | 81.53 | 84.66 | [84.65 - 84.67] | +3.13 |
+| **West Germany**| DEUTW | 80.37 | 83.86 | [83.85 - 83.87] | +3.49 |
+| **Netherlands** | NLD | 81.30 | 84.50 | [84.49 - 84.50] | +3.20 |
+| **Japan** | JPN | 81.72 | 84.82 | [84.81 - 84.83] | +3.10 |
 
 ### 13.2 Statistical Robustness and Risk Implications
-- **Confidence Interval Stability**: Narrow 95% CI (approx. ±0.04 years). 
+- **Confidence Interval Stability**: Narrow 95% CI (approx. ±0.008 years). 
 - **Prudence vs. Optimism**: A projected gain of ~3.5 years over 30 years is "Prudently Optimistic".
 
 ## 14. Actuarial Stress Testing: Model Resilience (Fig. 12)
@@ -232,11 +232,11 @@ Simulated a breakthrough in 2026 reducing $m_x$ by 10%.
 
 ### 14.2 Technical Observations and Resilience Analysis
 - **Structural Jump vs. Trend Stability**: Immediate leap of +1.0 year in life expectancy. Accepts the shock as a new baseline.
-- **Quantifying Longevity Risk**: Median $e_0$ for CHE shifts from 85.19 to 86.19.
+- **Quantifying Longevity Risk**: Median $e_0$ for CHE shifts from 84.81 to 85.81.
 
 | Metric | Baseline Forecast (CHE) | Shocked Scenario | Delta |
 | :--- | :--- | :--- | :--- |
-| **Median e0 (2050)** | 85.19 years | 86.19 years | **+1.00 yr** |
+| **Median e0 (2050)** | 84.81 years | 85.81 years | **+1.00 yr** |
 
 ## 15. Final Consolidation: Multi-Population Convergence (Fig. 13)
 
@@ -245,7 +245,7 @@ Visualizes median trajectories for all six nations.
 
 ### 15.2 Key Takeaways and Project Conclusions
 - **Implicit Convergence Mechanism**: West Germany exhibits the steepest trajectory, reducing the gap with leaders.
-- **Quantification of Risk**: Actuarial Risk Margin for Switzerland calculated at **0.037 years**.
+- **Quantification of Risk**: Actuarial Risk Margin for Switzerland calculated at **0.008 years**.
 
 ## 16. Biological Consistency & Monotonicity Audit (Fig. 14)
 
@@ -254,8 +254,8 @@ Ensured death rates ($m_x$) non-decrease with age.
 - **Gompertz Consistency**: All nations exhibit near-perfect exponential growth in mortality from age 40 onwards.
 
 ### 16.2 Analysis of Results: PASS vs. FAIL
-- **FAIL (Young Ages)**: CHE and NOR triggered a FAIL due to low mortality levels and youth accidents creating non-monotonic ripples between 20-30. 
-- **Actuarial Verdict**: For longevity risk (65-90), the model is highly consistent.
+- **All Countries PASS**: All six nations exhibit monotonically increasing mortality from age 40 onwards, confirming Gompertzian compliance across the full cluster.
+- **Actuarial Verdict**: The model is biologically consistent for longevity risk assessment.
 
 ## 17. Regulatory Capital & Full Cluster Tail Risk Analysis (Fig. 15)
 
@@ -266,16 +266,16 @@ Quantified risk using **VaR 99.5%** (Solvency II) and **Expected Shortfall 99.0%
 
 | Country | Median e0 (2050) | SCR (VaR 99.5%) | SCR (ES 99.0%) |
 | :--- | :--- | :--- | :--- |
-| **Switzerland** | 85.19 | +0.048 yrs | +0.050 yrs |
-| **Japan** | 85.20 | +0.048 yrs | +0.050 yrs |
-| **Sweden** | 85.14 | +0.048 yrs | +0.050 yrs |
-| **W. Germany** | 84.29 | +0.055 yrs | +0.057 yrs |
-| **Netherlands** | 84.89 | +0.050 yrs | +0.052 yrs |
-| **Norway** | 85.05 | +0.049 yrs | +0.051 yrs |
+| **Switzerland** | 84.81 | +0.010 yrs | +0.010 yrs |
+| **Japan** | 84.82 | +0.010 yrs | +0.010 yrs |
+| **Sweden** | 84.77 | +0.010 yrs | +0.010 yrs |
+| **W. Germany** | 83.86 | +0.011 yrs | +0.011 yrs |
+| **Netherlands** | 84.50 | +0.010 yrs | +0.010 yrs |
+| **Norway** | 84.66 | +0.010 yrs | +0.010 yrs |
 
 ### 17.3 Deep Dive & Methodological Observations
-- **Risk Convergence**: CHE, JPN, and SWE share nearly identical SCR of **0.048 years** (VaR 99.5%). This suggests a "Longevity Frontier" where risk is driven by systemic ceilings.
-- **The German "Catch-up" Penalty**: West Germany exhibits the highest relative risk (+0.055 yrs VaR, +0.057 yrs ES) because rapid catch-up is harder to predict.
+- **Risk Convergence**: CHE, JPN, and SWE share nearly identical SCR of **0.010 years** (VaR 99.5%). This suggests a "Longevity Frontier" where risk is driven by systemic ceilings.
+- **The German "Catch-up" Penalty**: West Germany exhibits the highest relative risk (+0.011 yrs VaR, +0.011 yrs ES) because rapid catch-up is harder to predict.
 - **Leptokurtic Distributions**: Narrow tails with minimal gap between VaR and ES indicate a lack of "Fat Tails" or explosive scenarios.
 
 ## 18. Statistical Exhaustiveness: Cluster-Wide Lexis Analysis (Fig. 16)
@@ -290,12 +290,12 @@ Verified that residuals (observed - reconstructed) look like random noise.
 ### 18.3 Table 3: Cluster-Wide Performance (2012-2020)
 | Country | MAE (Log-Scale) |
 | :--- | :--- |
-| **Netherlands** | 0.0983 |
-| **Sweden** | 0.1198 |
-| **West Germany** | 0.1275 |
-| **Switzerland** | 0.1285 |
-| **Norway** | 0.1367 |
-| **Japan** | 0.1890 |
+| **Netherlands** | 0.0831 |
+| **Switzerland** | 0.1191 |
+| **West Germany** | 0.1219 |
+| **Sweden** | 0.1262 |
+| **Norway** | 0.1339 |
+| **Japan** | 0.1748 |
 
 ## 19. Explainable AI (XAI): SHAP Multi-Country Influence Mapping (Fig. 18)
 
@@ -308,16 +308,17 @@ Used a "Flattening" strategy to handle 3D tensors for KernelExplainer. Operated 
 ### 19.3 Results and Observations: The Swiss Hierarchy (Fig. 18)
 | Input Feature | Mean Abs SHAP Value |
 | :--- | :--- |
-| **Japan** | **0.00781** |
-| **Switzerland** | **0.00665** |
-| **Sweden** | **0.00535** |
-| **West Germany** | **0.00486** |
-| **Common Factor (Kt)**| **0.00373** |
-| **Norway** | **0.00317** |
-| **Netherlands** | **0.00188** |
+| **Norway** | **0.00344** |
+| **Switzerland** | **0.00245** |
+| **Netherlands** | **0.00171** |
+| **West Germany** | **0.00145** |
+| **Sweden** | **0.00133** |
+| **Japan** | **0.00131** |
+| **Common Factor (Kt)**| **0.00077** |
 
-- **Biological Frontier (Japan)**: Dominant predictor, acting as a "Biological Compass" defining the frontier of what is achievable in longevity.
-- **Regional Lead-Lag (West Germany)**: Significant predictor due to geographic and healthcare proximity, though ranked below Japan and Switzerland's own autoregressive signal.
+- **Regional Proximity (Norway)**: Top predictor, reflecting shared Nordic-European healthcare dynamics and geographic proximity.
+- **Autoregressive Signal (Switzerland)**: Switzerland's own past mortality is the second strongest predictor, indicating persistent local trends.
+- **Distributed Influence**: The remaining countries contribute at similar magnitudes, suggesting the model integrates information from the full cluster rather than relying on a single dominant predictor.
 
 ## 20. Performance Benchmarking: The Challenge of Level Reconstruction
 
@@ -334,24 +335,24 @@ Implemented a hybrid **Mean-Bias Correction (MBC)**: $Level_{t} = Level_{t-1} + 
 
 | Country | Li-Lee RMSE (Level) | LSTM+MBC RMSE | Improvement (%) |
 | :--- | :--- | :--- | :--- |
-| **Japan** | 4.56460 | 3.56607 | **+21.88%** |
-| **Sweden** | 2.75366 | 2.27791 | **+17.28%** |
-| **West Germany** | 0.90146 | 0.81137 | **+9.99%** |
-| **Netherlands** | 2.60239 | 2.42319 | **+6.89%** |
-| **Norway** | 7.98333 | 7.56753 | **+5.21%** |
-| **Switzerland** | 1.31148 | 1.36631 | -4.18% |
+| **Sweden** | 2.75366 | 2.27444 | **+17.40%** |
+| **West Germany** | 0.90146 | 0.78815 | **+12.57%** |
+| **Netherlands** | 2.60239 | 2.48707 | **+4.43%** |
+| **Norway** | 7.98333 | 7.70261 | **+3.52%** |
+| **Japan** | 4.56460 | 4.62454 | -1.31% |
+| **Switzerland** | 1.31148 | 1.33874 | -2.08% |
 
 ### 20.5 Academic Discussion
-- **The Japanese Frontier**: **21.88%** improvement where mortality is most non-linear.
-- **Selective Superiority**: Switzerland remains favorable to Li-Lee (-4.18%) due to historical linearity.
+- **The Swedish Frontier**: **17.40%** improvement where mortality dynamics are most non-linear.
+- **Selective Superiority**: The model improves on 4 out of 6 countries. Switzerland (-2.08%) and Japan (-1.31%) remain marginally favorable to Li-Lee due to their near-linear historical trajectories.
 
 ## 21. Lookback Sensitivity Analysis (Robustness Audit)
 
 ### 21.1 Methodology and Results
 To validate the choice of a 10-year sliding window, we conducted a sensitivity test across three temporal horizons: 5, 10, and 15 years.
-* **5-Year Window (RMSE: 7.14169)**: Highest error. Suggests that a short horizon is insufficient to capture the persistent structural drifts and the 2011 deceleration effect.
-* **10-Year Window (RMSE: 7.05426)**: Current project standard. Demonstrates stable convergence and captures the bimodal memory (t-1, t-8) identified in XAI.
-* **15-Year Window (RMSE: 6.91248)**: Lowest error. Confirms that mortality dynamics benefit from deep historical context.
+* **5-Year Window (RMSE: 7.09021)**: Highest error. Suggests that a short horizon is insufficient to capture the persistent structural drifts and the 2011 deceleration effect.
+* **10-Year Window (RMSE: 7.00874)**: Current project standard. Demonstrates stable convergence and captures the concentrated mid-horizon memory profile identified in XAI.
+* **15-Year Window (RMSE: 6.84668)**: Lowest error. Confirms that mortality dynamics benefit from deep historical context.
 
 ### 21.2 Discussion for arXiv and Swiss Re
 While the 15-year window yields the lowest RMSE, the **10-year lookback** remains our "Champion" configuration for two strategic reasons:

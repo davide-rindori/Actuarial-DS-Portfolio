@@ -12,18 +12,18 @@ This repository contains the complete research pipeline for forecasting mortalit
 ## 🚀 Key Innovations & Results
 
 ### 1. Hybrid Benchmarking: The MBC Advantage
-To resolve the integration drift typical of recursive neural networks, we implemented a **Mean-Bias Correction (MBC)**. This hybrid framework outperformed the Li-Lee "Gold Standard" in 83% of the cluster, achieving a **+21.88% RMSE improvement in Japan** and **+17.28% in Sweden**, proving that neural-actuarial hybrids are superior for frontier populations.
+To resolve the integration drift typical of recursive neural networks, we implemented a **Mean-Bias Correction (MBC)**. This hybrid framework outperformed the Li-Lee "Gold Standard" in 67% of the cluster, achieving a **+17.40% RMSE improvement in Sweden** and **+12.57% in West Germany**, proving that neural-actuarial hybrids are superior for frontier populations with non-linear dynamics.
 
 ### 2. Stochastic Fan Charts (2020-2050)
 Utilizing MC Dropout, the model generates 1,000 stochastic trajectories. Unlike the rigid linearity of Lee-Carter, the LSTM captures non-linear curvatures and cyclical "stalls" in mortality improvement, identifying a shared biological frontier.
 ![Stochastic Projection](reports/figures/fig09_kt_stochastic_forecast.png)
 
 ### 3. Longevity Convergence & Frontier Dynamics
-The results confirm a **Catch-up Effect**: countries exhibit steeper improvement slopes converging toward a projected life expectancy ($e_0$) median of **~85.2 years** (CHE/JPN/SWE) by 2050.
+The results confirm a **Catch-up Effect**: countries exhibit steeper improvement slopes converging toward a projected life expectancy ($e_0$) median of **~84.8 years** (CHE/JPN/SWE) by 2050.
 ![Convergence Map](reports/figures/fig13_final_convergence_map.png)
 
 ### 4. Regulatory Capital & Tail Risk (SCR)
-The model provides a robust framework for calculating the **Solvency Capital Requirement (SCR)**. For Switzerland (SST), the model identifies a high-precision Risk Margin (95% CI) of **±0.037 years**, satisfying the stringent requirements for internal model validation.
+The model provides a robust framework for calculating the **Solvency Capital Requirement (SCR)**. For Switzerland (SST), the model identifies a high-precision Risk Margin (95% CI) of **±0.008 years**, satisfying the stringent requirements for internal model validation.
 ![Tail Risk Analysis](reports/figures/fig15_longevity_tail_risk.png)
 
 ### 5. Financial Utility: Longevity Swap Pricing
@@ -31,11 +31,11 @@ By transforming mortality rates into discounted cash flows, the model prices a 3
 ![Swap Pricing](reports/figures/fig17_longevity_swap_pricing.png)
 
 ### 6. XAI: SHAP Influence Mapping
-Utilizing Game Theory-based **SHAP values**, the model provides a "Right to Explanation". Results for Switzerland reveal a structured influence hierarchy where **Japan's** biological frontier signal and regional European dynamics (including **West Germany** and the **Common Factor Kt**) jointly drive local mortality projections.
+Utilizing Game Theory-based **SHAP values**, the model provides a "Right to Explanation". Results for Switzerland reveal a structured influence hierarchy where **Norway's** regional proximity signal and **Switzerland's** own autoregressive dynamics jointly drive local mortality projections, with distributed contributions from the remaining European cluster.
 ![SHAP Influence Mapping](reports/figures/fig18_shap_influence_mapping.png)
 
 ### 7. Methodological Robustness: Window Sensitivity
-To justify the choice of a 10-year lookback window, a sensitivity analysis was performed. Results confirm that while 15 years offer marginal gains, the 10-year window provides the optimal balance between capturing deep temporal dependencies (as shown by the t-8 lag importance) and maintaining statistical sample volume.
+To justify the choice of a 10-year lookback window, a sensitivity analysis was performed. Results confirm that while 15 years offer marginal gains, the 10-year window provides the optimal balance between capturing deep temporal dependencies (as shown by the non-zero importance at t-10 validating the full window depth) and maintaining statistical sample volume.
 ![Sensitivity Analysis](reports/figures/fig19_lookback_sensitivity.png)
 
 ## 🛠 Project Structure
@@ -56,6 +56,6 @@ To justify the choice of a 10-year lookback window, a sensitivity analysis was p
 - **Source**: Human Mortality Database (HMD).
 - **Validation**: Out-of-sample testing (2012-2020), **Biological Monotonicity Audit**, and **Lookback Sensitivity Analysis**.
 - **Governance**: Comprehensive [MODEL_PASSPORT.md] included for regulatory auditatibility and L&H Risk management.
-- **XAI**: Bimodal temporal memory (t-1, t-8) and SHAP-based feature importance mapping.
+- **XAI**: Concentrated mid-horizon temporal memory (peak at t-4) and SHAP-based feature importance mapping.
 - **Financials**: 2% Risk-free rate; SST (Expected Shortfall) and Solvency II (VaR) standards.
 - **Design**: Viridis color palette for perceptual uniformity; Helvetica typography for academic legibility.
