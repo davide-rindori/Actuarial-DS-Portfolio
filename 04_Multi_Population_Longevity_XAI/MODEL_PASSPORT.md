@@ -30,5 +30,5 @@
 
 ## 5. Model Robustness & Sensitivity (Clean Run Audit)
 - **Lookback Optimization**: Sensitivity analysis (Fig 19) revealed that RMSE decreases as the lookback window increases (5y: 7.09, 10y: 7.01, 15y: 6.85). 
-- **Design Decision**: A 10-year lookback was selected as the standard. While a 15-year window offers marginal precision gains (+2% over 10y), it significantly reduces the available training sample size. The 10y window provides the optimal balance between capturing deep temporal dependencies and maintaining statistical volume for the 6-country cluster.
+- **Design Decision**: A 10-year lookback was selected as the standard. While a 15-year window offers marginal precision gains (+2.3% over 10y), it significantly reduces the available training sample size. The 10y window provides the optimal balance between capturing deep temporal dependencies and maintaining statistical volume for the 6-country cluster.
 - **Inertia Analysis**: The model effectively filters short-term noise by leveraging a concentrated mid-horizon memory profile (peak at t-4), as confirmed by gradient-based temporal saliency analysis.

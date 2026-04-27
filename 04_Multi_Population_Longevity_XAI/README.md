@@ -55,7 +55,7 @@ To justify the choice of a 10-year lookback window, a sensitivity analysis was p
 - **Cluster**: CHE, SWE, NOR, DEUTW, NLD, JPN (1956-2020).
 - **Source**: Human Mortality Database (HMD).
 - **Validation**: Out-of-sample testing (2012-2020), **Biological Monotonicity Audit**, and **Lookback Sensitivity Analysis**.
-- **Governance**: Comprehensive [MODEL_PASSPORT.md] included for regulatory auditatibility and L&H Risk management.
+- **Governance**: Comprehensive [MODEL_PASSPORT.md] included for regulatory auditability and L&H Risk management.
 - **XAI**: Concentrated mid-horizon temporal memory (peak at t-4) and SHAP-based feature importance mapping.
 - **Financials**: 2% Risk-free rate; SST (Expected Shortfall) and Solvency II (VaR) standards.
 - **Design**: Viridis color palette for perceptual uniformity; Helvetica typography for academic legibility.

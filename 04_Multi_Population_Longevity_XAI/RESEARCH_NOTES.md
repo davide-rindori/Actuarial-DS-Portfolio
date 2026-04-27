@@ -225,9 +225,9 @@ Synthesis of stochastic results into Table 1.
 - **Confidence Interval Stability**: Narrow 95% CI (approx. ±0.008 years). 
 - **Prudence vs. Optimism**: A projected gain of ~3.5 years over 30 years is "Prudently Optimistic".
 
-## 14. Actuarial Stress Testing: Model Resilience (Fig. 12)
+## 14. Actuarial Scenario Analysis: Model Resilience (Fig. 12)
 
-### 14.1 Stress Scenario Rationale: The "Medical Breakthrough" Shock
+### 14.1 Scenario Rationale: The "Medical Breakthrough" Shock
 Simulated a breakthrough in 2026 reducing $m_x$ by 10%.
 
 ### 14.2 Technical Observations and Resilience Analysis
@@ -308,17 +308,17 @@ Used a "Flattening" strategy to handle 3D tensors for KernelExplainer. Operated 
 ### 19.3 Results and Observations: The Swiss Hierarchy (Fig. 18)
 | Input Feature | Mean Abs SHAP Value |
 | :--- | :--- |
-| **Norway** | **0.00344** |
-| **Switzerland** | **0.00245** |
-| **Netherlands** | **0.00171** |
-| **West Germany** | **0.00145** |
-| **Sweden** | **0.00133** |
-| **Japan** | **0.00131** |
-| **Common Factor (Kt)**| **0.00077** |
+| **Norway** | **0.00343** |
+| **Switzerland** | **0.00257** |
+| **Netherlands** | **0.00185** |
+| **West Germany** | **0.00148** |
+| **Sweden** | **0.00139** |
+| **Common Factor (Kt)**| **0.00130** |
+| **Japan** | **0.00072** |
 
 - **Regional Proximity (Norway)**: Top predictor, reflecting shared Nordic-European healthcare dynamics and geographic proximity.
 - **Autoregressive Signal (Switzerland)**: Switzerland's own past mortality is the second strongest predictor, indicating persistent local trends.
-- **Distributed Influence**: The remaining countries contribute at similar magnitudes, suggesting the model integrates information from the full cluster rather than relying on a single dominant predictor.
+- **Distributed Influence**: The remaining countries and the common factor contribute at similar magnitudes, suggesting the model integrates information from the full cluster rather than relying on a single dominant predictor.
 
 ## 20. Performance Benchmarking: The Challenge of Level Reconstruction
 
@@ -351,7 +351,7 @@ Implemented a hybrid **Mean-Bias Correction (MBC)**: $Level_{t} = Level_{t-1} + 
 ### 21.1 Methodology and Results
 To validate the choice of a 10-year sliding window, we conducted a sensitivity test across three temporal horizons: 5, 10, and 15 years.
 * **5-Year Window (RMSE: 7.09021)**: Highest error. Suggests that a short horizon is insufficient to capture the persistent structural drifts and the 2011 deceleration effect.
-* **10-Year Window (RMSE: 7.00874)**: Current project standard. Demonstrates stable convergence and captures the concentrated mid-horizon memory profile identified in XAI.
+* **10-Year Window (RMSE: 7.00874)**: Current project standard. Shows stable convergence and captures the concentrated mid-horizon memory profile identified in XAI.
 * **15-Year Window (RMSE: 6.84668)**: Lowest error. Confirms that mortality dynamics benefit from deep historical context.
 
 ### 21.2 Discussion for arXiv and Swiss Re
