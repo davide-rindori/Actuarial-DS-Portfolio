@@ -20,5 +20,7 @@ Thumbs.db
 # Reports/Figures - We keep these for GitHub visualization
 
 # LaTeX Paper (managed on Overleaf)
-main.tex
-references.bib
+latex/
+
+# Internal planning document
+ROADMAP.md
