@@ -1,53 +1,92 @@
 # Actuarial Data Science Portfolio
-## Davide Rindori — SAV Actuarial Candidate, Data Scientist & PhD in Physics
 
-Welcome to my professional portfolio. This repository showcases a collection of projects where Actuarial Science meets modern Data Engineering and Machine Learning, with a specific focus on Risk Modeling, Longevity, and NatCat analysis.
-
----
-
-## 📂 Project Index
-
-### 4. [Neural Multi-Population Mortality: Beyond Linear Coherence](./04_Neural_MultiPopulation_Longevity)
-**Focus:** *Global Longevity Risk, Hierarchical LSTM, XAI (SHAP), Model Governance*
-* **Core Output:** Developed a hybrid **LSTM+MBC (Mean-Bias Correction)** framework for a 6-country frontier cluster (CHE, SWE, NOR, DEUTW, NLD, JPN).
-* **Innovation:** Outperformed the Li-Lee "Gold Standard" by **21.88% in Japan** and **17.28% in Sweden**, effectively capturing non-linear regime shifts post-2011.
-* **Risk Governance:** Quantified a high-precision **SCR Risk Margin of ±0.037 years** (95% CI) for Switzerland and implemented **SHAP influence mapping** to ensure regulatory auditatibility (SST/Solvency II).
-* **Documentation:** Includes a comprehensive **[Model Passport](./04_Neural_MultiPopulation_Longevity/MODEL_PASSPORT.md)** and detailed **[Research Notes](./04_Neural_MultiPopulation_Longevity/RESEARCH_NOTES.md)**.
-
-### 3. [Stochastic Longevity Forecasting: A Neural Approach to SST](./03_Stochastic_Mortality_Modeling)
-**Focus:** *Life & Health Reinsurance, Deep Learning, Swiss Solvency Test (SST)*
-* **Core Output:** Developed an LSTM-based framework for Swiss mortality, quantifying a **3.90 Longevity SCR Shock**.
-* **Model Risk:** Identified a **38.5-point "Prudence Gap"** by benchmarking neural projections against traditional linear drift assumptions.
-* **Documentation:** Includes a full **Technical Paper** calibrating capital buffers under Swiss Solvency Test standards.
-
-### 2. [Zurich Extreme Precipitation Analysis (EVT)](./02_Climate_Risk_EVT)
-**Focus:** *Climate Risk, Extreme Value Theory (EVT), Big Data Engineering*
-* Modeled "Tail Risk" for catastrophic flooding events in Zurich using 44 years of ERA5 hourly climate data.
-* Engineered a pipeline to process **~385,000 observations**, identifying a **43% underestimation** in risk intensity when using low-resolution data snapshots.
-* Fitted **Gumbel distributions** to estimate 100-year return levels, providing key inputs for PML and Solvency assessments.
-
-### 1. [Motor Pricing & Actuarial Interpretability](./01_Motor_Pricing_Interpretability)
-**Focus:** *P&C Pricing, Gradient Boosting (XGBoost), Explainable AI (XAI)*
-* Implemented a frequency-severity pricing framework, achieving a **4.67% improvement** in Poisson deviance over traditional GLM benchmarks.
-* Leveraged **SHAP (Shapley Additive Explanations)** to ensure model transparency and decompose non-linear risk factor interactions.
+**Davide Rindori, PhD** — SAV Actuarial Candidate · Data Scientist · PhD in Physics
 
 ---
 
-## 🛠️ Skills & Tools
-* **Actuarial:** Stochastic Longevity Modeling (Hierarchical/Multi-population), SCR Calibration (VaR/ES), EVT, GLM, Pricing.
-* **Technical:** Python (PyTorch/TensorFlow, Scikit-learn, Pandas), Git, LaTeX, SQL.
-* **Domain:** Swiss Solvency Test (SST), Solvency II, Model Risk Management (Governance), NatCat Modeling.
+This repository collects four independent research projects at the intersection of Actuarial Science, Machine Learning, and Quantitative Risk Management. Each project addresses a distinct domain — P&C Pricing, NatCat Climate Risk, Single-Population Longevity, and Multi-Population Longevity — with a consistent emphasis on statistical rigour, model governance, and regulatory applicability under Swiss Solvency Test (SST) and Solvency II frameworks.
 
 ---
 
-## 🔬 Education & Certification
-* **SAV Actuarial Candidate:** Actively pursuing certification with the Swiss Association of Actuaries.
-* **PhD in Physics — University of Florence:** Specialized in complex systems modeling and stochastic processes.
+## Project Index
+
+### 4 · [Neural Multi-Population Mortality: Beyond Linear Coherence](./04_Multi_Population_Longevity_XAI)
+
+**Domain:** Global Longevity Risk · Hierarchical LSTM · XAI (SHAP) · Model Governance
+
+A complete research pipeline for forecasting mortality across a high-longevity 6-country cluster (CHE, SWE, NOR, DEUTW, NLD, JPN). The project challenges classical actuarial models — Lee-Carter, Li-Lee (2005), and CBD (2006) — by introducing a Bayesian-optimised Hierarchical LSTM with Monte Carlo Dropout.
+
+- **Hybrid Benchmarking (MBC):** A Mean-Bias Correction anchor resolves the integration drift inherent in recursive neural forecasting. The LSTM+MBC framework outperforms Li-Lee in 67% of the cluster, achieving **+17.40% RMSE improvement in Sweden** and **+12.57% in West Germany**.
+- **Stochastic Projections (2020–2050):** 1,000 MC Dropout trajectories reveal a shared biological frontier, with projected median life expectancy converging toward ~84.8 years for CHE, JPN, and SWE.
+- **Regulatory Capital:** SCR calibration (VaR 99.5% / ES 99.0%) yields a high-precision Risk Margin of **±0.008 years** (95% CI) for Switzerland, satisfying internal model validation requirements.
+- **Longevity Swap Pricing:** Stochastic mortality trajectories are translated into discounted cash flows for a 30-year Longevity Swap (Cohort 65).
+- **Explainability (XAI):** SHAP influence mapping decomposes the "Black Box", revealing that Norway's regional proximity signal and Switzerland's autoregressive dynamics jointly drive local mortality projections.
+- **Documentation:** Includes a comprehensive [Model Passport](./04_Multi_Population_Longevity_XAI/MODEL_PASSPORT.md), detailed [Research Notes](./04_Multi_Population_Longevity_XAI/RESEARCH_NOTES.md), and a [Roadmap](./04_Multi_Population_Longevity_XAI/ROADMAP.md).
 
 ---
-## 📫 Contact
-* **LinkedIn:** [linkedin.com/in/davide-rindori/](https://www.linkedin.com/in/davide-rindori/)
-* **Email:** [rindori.d@gmail.com](mailto:rindori.d@gmail.com)
+
+### 3 · [Stochastic Longevity Forecasting: A Neural Approach to SST](./03_Stochastic_Mortality_Modeling)
+
+**Domain:** Life & Health Reinsurance · Deep Learning · Swiss Solvency Test (SST)
+
+An LSTM-based framework for Swiss mortality (HMD, 1950–2024) that quantifies Longevity Trend Risk through probabilistic inference. The model transitions beyond the deterministic constraints of Lee-Carter by incorporating Monte Carlo Dropout for epistemic uncertainty quantification.
+
+- **Model Selection:** Out-of-sample backtesting (2011–2024) confirms LSTM superiority over SVD-based benchmarks (RMSE 0.1141 vs. 0.1682), with effective adaptation to the post-2010 mortality improvement plateau.
+- **Prudence Gap:** A **38.54-point divergence** between LSTM median and Lee-Carter trend by 2050 quantifies the Model Risk of relying on linear drift assumptions in a decelerating regime.
+- **SST Calibration:** Expected Shortfall (ES 99%) yields a **Longevity SCR Shock of 3.90**, calibrated for FINMA regulatory capital requirements.
+- **Documentation:** Includes a full [Technical Paper](./03_Stochastic_Mortality_Modeling/reports/Stochastic_Longevity_Forecasting_Rindori_2026.pdf) and [LaTeX source](./03_Stochastic_Mortality_Modeling/latex/).
 
 ---
-*This portfolio is continuously updated with new research and technical implementations.*
+
+### 2 · [Zurich Extreme Precipitation Analysis (EVT)](./02_Climate_Risk_EVT)
+
+**Domain:** Climate Risk · Extreme Value Theory · Big Data Engineering
+
+An Extreme Value Theory framework applied to 44 years of ERA5 hourly reanalysis data (ECMWF / Copernicus CDS) for the Zurich metropolitan area. The project quantifies tail risk for catastrophic precipitation events, providing inputs for PML estimation and solvency assessments.
+
+- **Data Engineering:** A resilient Python pipeline processes **~385,000 hourly observations** (1980–2023), overcoming CDS API payload constraints through sequential batch processing.
+- **Granularity Insight:** Transitioning from daily snapshots to hourly accumulation reveals a **43% underestimation** of historical extreme events (37 mm vs. 64.6 mm), demonstrating that high-resolution data engineering is non-negotiable for accurate Catastrophe Modelling.
+- **Statistical Modelling:** Gumbel distribution (GEV Type I) fitted to the Annual Maximum Series, validated by a Kolmogorov-Smirnov p-value of **0.992**.
+- **100-Year Return Level:** Estimated at **75.2 mm** daily rainfall, providing the necessary safety margin for NatCat reserving and capital adequacy.
+
+---
+
+### 1 · [Motor Pricing & Actuarial Interpretability](./01_Motor_Pricing_Interpretability)
+
+**Domain:** P&C Pricing · Gradient Boosting (XGBoost) · Explainable AI (XAI)
+
+A frequency-severity pricing study on the French MTPL dataset (~670,000 policies), benchmarking GLM, XGBoost, and CANN (Combined Actuarial Neural Network) architectures.
+
+- **Champion Model:** XGBoost achieves a Poisson Deviance of **0.5646**, a **4.67% improvement** over the GLM benchmark (0.5923).
+- **Explainability (SHAP):** TreeSHAP decomposes non-linear risk factor interactions — notably the sharp acceleration of young-driver risk above a vehicle power threshold — ensuring regulatory auditability under Solvency II.
+- **Neural Baseline (CANN):** A hybrid GLM-Neural architecture demonstrates strong convergence, establishing a foundation for future deep learning pricing iterations.
+- **Documentation:** Includes a detailed [Technical White Paper](./01_Motor_Pricing_Interpretability/METHODOLOGY.md) covering mathematical foundations, model governance, and Shapley value theory.
+
+---
+
+## Skills & Tools
+
+| Category | Detail |
+| :--- | :--- |
+| **Actuarial** | Stochastic Longevity Modelling (Single & Multi-Population), SCR Calibration (VaR / ES), EVT, GLM, Frequency-Severity Pricing, Longevity Swap Valuation |
+| **Machine Learning** | LSTM (Hierarchical, MC Dropout), XGBoost, CANN, Bayesian Hyperparameter Optimisation, SHAP / XAI |
+| **Engineering** | Python (TensorFlow/Keras, Scikit-learn, Pandas, xarray, SciPy), Git, LaTeX, SQL |
+| **Regulatory** | Swiss Solvency Test (SST), Solvency II, Model Risk Management, Internal Model Governance |
+
+---
+
+## Education & Certification
+
+- **SAV Actuarial Candidate** — Swiss Association of Actuaries (Schweizerische Aktuarvereinigung)
+- **PhD in Physics** — University of Florence. Specialisation in complex systems modelling and stochastic processes.
+
+---
+
+## Contact
+
+- **LinkedIn:** [linkedin.com/in/davide-rindori](https://www.linkedin.com/in/davide-rindori/)
+- **Email:** [rindori.d@gmail.com](mailto:rindori.d@gmail.com)
+
+---
+
+Licensed under the [MIT License](./LICENSE.md).
