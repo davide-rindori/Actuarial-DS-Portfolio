@@ -12,13 +12,14 @@ This repository collects four independent research projects at the intersection 
 
 ### 4 · [Neural Multi-Population Mortality: Beyond Linear Coherence](./04_Multi_Population_Longevity_XAI)
 
-**Domain:** Global Longevity Risk · Hierarchical LSTM · XAI (SHAP) · Model Governance
+**Domain:** Global Longevity Risk · Hierarchical LSTM · Dual Uncertainty · XAI (SHAP) · Model Governance
 
-A complete research pipeline for forecasting mortality across a high-longevity 6-country cluster (CHE, SWE, NOR, DEUTW, NLD, JPN). The project challenges classical actuarial models — Lee-Carter, Li-Lee (2005), and CBD (2006) — by introducing a Bayesian-optimised Hierarchical LSTM with Monte Carlo Dropout.
+A complete research pipeline for forecasting mortality across a high-longevity 6-country cluster (CHE, SWE, NOR, DEUTW, NLD, JPN). The project challenges classical actuarial models — Lee-Carter, Li-Lee (2005), and CBD (2006) — by introducing a Bayesian-optimised Hierarchical LSTM with a dual uncertainty framework that jointly captures epistemic and process risk.
 
 - **Hybrid Benchmarking (MBC):** A Mean-Bias Correction anchor resolves the integration drift inherent in recursive neural forecasting. The LSTM+MBC framework outperforms Li-Lee in 67% of the cluster, achieving **+17.40% RMSE improvement in Sweden** and **+12.57% in West Germany**.
-- **Stochastic Projections (2020–2050):** 1,000 MC Dropout trajectories reveal a shared biological frontier, with projected median life expectancy converging toward ~84.8 years for CHE, JPN, and SWE.
-- **Regulatory Capital:** SCR calibration (VaR 99.5% / ES 99.0%) yields a high-precision Risk Margin of **±0.008 years** (95% CI) for Switzerland, satisfying internal model validation requirements.
+- **Dual Uncertainty Framework:** Combines MC Dropout (model/epistemic uncertainty) with Li-Lee calibrated process noise (aleatoric/process uncertainty) within the same 1,000 stochastic trajectories. This produces realistic confidence intervals of **±0.9 years** (95% CI) for life expectancy projections — a material upgrade from epistemic-only estimates.
+- **Stochastic Projections (2020–2050):** Projected median life expectancy converges toward ~84.8 years for CHE, JPN, and SWE, with West Germany exhibiting the steepest catch-up trajectory (+3.45 years).
+- **Regulatory Capital:** Under the dual uncertainty framework, SCR calibration yields **+1.153 years** (ES 99.0%, SST) and **+1.116 years** (VaR 99.5%, Solvency II) for Switzerland, with an actuarial Risk Margin of **±0.873 years**. West Germany carries the highest tail risk (+1.320 years ES) due to catch-up volatility.
 - **Longevity Swap Pricing:** Stochastic mortality trajectories are translated into discounted cash flows for a 30-year Longevity Swap (Cohort 65).
 - **Explainability (XAI):** SHAP influence mapping decomposes the "Black Box", revealing that Norway's regional proximity signal and Switzerland's autoregressive dynamics jointly drive local mortality projections.
 - **Documentation:** Includes a comprehensive [Model Passport](./04_Multi_Population_Longevity_XAI/MODEL_PASSPORT.md), detailed [Research Notes](./04_Multi_Population_Longevity_XAI/RESEARCH_NOTES.md), and a [Roadmap](./04_Multi_Population_Longevity_XAI/ROADMAP.md).
