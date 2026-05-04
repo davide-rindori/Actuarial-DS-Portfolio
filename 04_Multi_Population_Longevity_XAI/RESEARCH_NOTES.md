@@ -171,7 +171,7 @@ Predictions are generated through a recursive feedback loop where each predicted
 ### 10.4 Key Observations: Fan Chart Interpretation (Fig. 09)
 - **Deep Learning Advantage**: The LSTM median exhibits non-linear curvatures, projecting inflections or rhythmic stalls learned from history.
 - **Uncertainty Asymmetry**: Higher probability of "longevity shocks" (lower $K_t$) compared to mortality spikes.
-- **Drift Stability**: The median $K_t$ reaches **-114.86** by 2050 from approx. -60 in 2020.
+- **Drift Stability**: The mean $K_t$ reaches **-114.46** by 2050 from approx. -60 in 2020.
 
 ## 11. Demographic Impact: Life Expectancy Reconstruction
 
@@ -180,15 +180,15 @@ Latent factors were back-transformed into death rates ($m_x$) using baseline age
 - **Actuarial Life Table**: Calculated life expectancy at birth ($e_0$) via the trapezoidal rule across 1,000 trajectories.
 
 ### 11.2 Cluster-Wide Results and Longevity Convergence
-- **Systemic Longevity Signal**: Gains in $e_0$ range between **+3.06 and +3.49 years** by 2050.
-- **The Convergence Effect**: Countries from lower baselines, such as West Germany ($e_0$ 80.37), exhibit faster improvement (+3.49 years) than leaders like Switzerland (+3.10 years). 
+- **Systemic Longevity Signal**: Gains in $e_0$ range between **+3.02 and +3.45 years** by 2050.
+- **The Convergence Effect**: Countries from lower baselines, such as West Germany ($e_0$ 80.37), exhibit faster improvement (+3.45 years) than leaders like Switzerland (+3.06 years). 
 
 ### 11.3 Case Study: Switzerland (CHE) Findings
-- **Forecast Resilience**: CHE projects a median $e_0$ increase from **81.71** (2020) to **84.81** (2050).
+- **Forecast Resilience**: CHE projects a mean $e_0$ increase from **81.71** (2020) to **84.77** (2050).
 - **Sensitivity to 2020 Shocks**: Interprets the pandemic as a transitory shock rather than a permanent structural shift.
 
 ### 11.4 Comparative Multi-Country Visualization Analysis (Fig. 10)
-- **The "Parallelism" of Longevity**: Switzerland and Japan converge toward the ~84.8-year mark by 2050, as the LSTM perceives both as "Frontier Leaders".
+- **The "Parallelism" of Longevity**: Switzerland and Japan converge toward the ~84.8-year mark by 2050,
 - **Evidence of Catch-up Dynamics (West Germany)**: DEUTW maintains a steeper improvement slope, confirming the "Convergence Effect".
 
 ## 12. Explainable AI (XAI): Deciphering the Black Box (Fig. 11)
@@ -214,15 +214,15 @@ Synthesis of stochastic results into Table 1.
 
 | Country | Code | e0 (2020) | e0 (2050) Median | 95% CI (2050) | Net Gain (Yrs) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Switzerland** | CHE | 81.71 | 84.81 | [84.80 - 84.82] | +3.10 |
-| **Sweden** | SWE | 81.71 | 84.77 | [84.76 - 84.77] | +3.06 |
-| **Norway** | NOR | 81.53 | 84.66 | [84.65 - 84.67] | +3.13 |
-| **West Germany**| DEUTW | 80.37 | 83.86 | [83.85 - 83.87] | +3.49 |
-| **Netherlands** | NLD | 81.30 | 84.50 | [84.49 - 84.50] | +3.20 |
-| **Japan** | JPN | 81.72 | 84.82 | [84.81 - 84.83] | +3.10 |
+| **Switzerland** | CHE | 81.71 | 84.77 | [83.80 - 85.65] | +3.06 |
+| **Sweden** | SWE | 81.71 | 84.73 | [83.76 - 85.61] | +3.02 |
+| **Norway** | NOR | 81.53 | 84.63 | [83.64 - 85.52] | +3.09 |
+| **West Germany**| DEUTW | 80.37 | 83.82 | [82.71 - 84.83] | +3.45 |
+| **Netherlands** | NLD | 81.30 | 84.46 | [83.45 - 85.38] | +3.16 |
+| **Japan** | JPN | 81.72 | 84.78 | [83.81 - 85.66] | +3.06 |
 
 ### 13.2 Statistical Robustness and Risk Implications
-- **Confidence Interval Stability**: Narrow 95% CI (approx. ±0.008 years). 
+- **Confidence Interval Stability**: 95% CI of approximately ±0.9 years, reflecting the dual uncertainty framework (MC Dropout + Li-Lee calibrated process noise). 
 - **Prudence vs. Optimism**: A projected gain of ~3.5 years over 30 years is "Prudently Optimistic".
 
 ## 14. Actuarial Scenario Analysis: Model Resilience (Fig. 12)
@@ -232,11 +232,11 @@ Simulated a breakthrough in 2026 reducing $m_x$ by 10%.
 
 ### 14.2 Technical Observations and Resilience Analysis
 - **Structural Jump vs. Trend Stability**: Immediate leap of +1.0 year in life expectancy. Accepts the shock as a new baseline.
-- **Quantifying Longevity Risk**: Median $e_0$ for CHE shifts from 84.81 to 85.81.
+- **Quantifying Longevity Risk**: Median $e_0$ for CHE shifts from 84.77 to 85.77.
 
 | Metric | Baseline Forecast (CHE) | Shocked Scenario | Delta |
 | :--- | :--- | :--- | :--- |
-| **Median e0 (2050)** | 84.81 years | 85.81 years | **+1.00 yr** |
+| **Median e0 (2050)** | 84.77 years | 85.77 years | **+1.00 yr** |
 
 ## 15. Final Consolidation: Multi-Population Convergence (Fig. 13)
 
@@ -245,7 +245,7 @@ Visualizes median trajectories for all six nations.
 
 ### 15.2 Key Takeaways and Project Conclusions
 - **Implicit Convergence Mechanism**: West Germany exhibits the steepest trajectory, reducing the gap with leaders.
-- **Quantification of Risk**: Actuarial Risk Margin for Switzerland calculated at **0.008 years**.
+- **Quantification of Risk**: Actuarial Risk Margin for Switzerland calculated at **±0.873 years**.
 
 ## 16. Biological Consistency & Monotonicity Audit (Fig. 14)
 
@@ -266,16 +266,16 @@ Quantified risk using **VaR 99.5%** (Solvency II) and **Expected Shortfall 99.0%
 
 | Country | Median e0 (2050) | SCR (VaR 99.5%) | SCR (ES 99.0%) |
 | :--- | :--- | :--- | :--- |
-| **Switzerland** | 84.81 | +0.010 yrs | +0.010 yrs |
-| **Japan** | 84.82 | +0.010 yrs | +0.010 yrs |
-| **Sweden** | 84.77 | +0.010 yrs | +0.010 yrs |
-| **W. Germany** | 83.86 | +0.011 yrs | +0.011 yrs |
-| **Netherlands** | 84.50 | +0.010 yrs | +0.010 yrs |
-| **Norway** | 84.66 | +0.010 yrs | +0.010 yrs |
+| **Switzerland** | 84.77 | +1.116 yrs | +1.153 yrs |
+| **Japan** | 84.78 | +1.116 yrs | +1.153 yrs |
+| **Sweden** | 84.73 | +1.112 yrs | +1.150 yrs |
+| **W. Germany** | 83.82 | +1.277 yrs | +1.320 yrs |
+| **Netherlands** | 84.46 | +1.164 yrs | +1.203 yrs |
+| **Norway** | 84.63 | +1.136 yrs | +1.174 yrs |
 
 ### 17.3 Deep Dive & Methodological Observations
-- **Risk Convergence**: CHE, JPN, and SWE share nearly identical SCR of **0.010 years** (VaR 99.5%). This suggests a "Longevity Frontier" where risk is driven by systemic ceilings.
-- **The German "Catch-up" Penalty**: West Germany exhibits the highest relative risk (+0.011 yrs VaR, +0.011 yrs ES) because rapid catch-up is harder to predict.
+- **Risk Convergence**: CHE, JPN, and SWE share nearly identical SCR of approximately **+1.15 years** (ES 99.0%). This suggests a "Longevity Frontier" where risk is driven by systemic ceilings.
+- **The German "Catch-up" Penalty**: West Germany exhibits the highest relative risk (+1.277 yrs VaR, +1.320 yrs ES) because rapid catch-up is harder to predict.
 - **Leptokurtic Distributions**: Narrow tails with minimal gap between VaR and ES indicate a lack of "Fat Tails" or explosive scenarios.
 
 ## 18. Statistical Exhaustiveness: Cluster-Wide Lexis Analysis (Fig. 16)
@@ -290,12 +290,12 @@ Verified that residuals (observed - reconstructed) look like random noise.
 ### 18.3 Table 3: Cluster-Wide Performance (2012-2020)
 | Country | MAE (Log-Scale) |
 | :--- | :--- |
-| **Netherlands** | 0.0831 |
-| **Switzerland** | 0.1191 |
-| **West Germany** | 0.1219 |
-| **Sweden** | 0.1262 |
-| **Norway** | 0.1339 |
-| **Japan** | 0.1748 |
+| **Netherlands** | 0.0817 |
+| **Switzerland** | 0.1182 |
+| **Sweden** | 0.1254 |
+| **West Germany** | 0.1225 |
+| **Norway** | 0.1355 |
+| **Japan** | 0.1715 |
 
 ## 19. Explainable AI (XAI): SHAP Multi-Country Influence Mapping (Fig. 18)
 

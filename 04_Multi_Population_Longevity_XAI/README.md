@@ -23,7 +23,7 @@ The results confirm a **Catch-up Effect**: countries exhibit steeper improvement
 ![Convergence Map](reports/figures/fig13_final_convergence_map.png)
 
 ### 4. Regulatory Capital & Tail Risk (SCR)
-The model provides a robust framework for calculating the **Solvency Capital Requirement (SCR)**. For Switzerland (SST), the model identifies a high-precision Risk Margin (95% CI) of **±0.008 years**, satisfying the stringent requirements for internal model validation.
+The model provides a robust framework for calculating the **Solvency Capital Requirement (SCR)** under a dual uncertainty framework combining model uncertainty (MC Dropout) with process uncertainty calibrated on the Li-Lee benchmark. For Switzerland (SST), the model yields an ES 99.0\% SCR of **+1.153 years**, satisfying the requirements for internal model validation.
 ![Tail Risk Analysis](reports/figures/fig15_longevity_tail_risk.png)
 
 ### 5. Financial Utility: Longevity Swap Pricing

@@ -24,8 +24,8 @@
 - **XAI Audit:** SHAP analysis revealed a structured cross-country influence hierarchy for Swiss mortality, with Norway's regional proximity signal and distributed European dynamics as key drivers.
 
 ## 4. Risk & Capital Metrics (2050 Forecast)
-- **Switzerland (CHE) SCR (ES 99.0%):** +0.010 years.
-- **Japan (JPN) SCR (ES 99.0%):** +0.010 years.
+- **Switzerland (CHE) SCR (ES 99.0%):** +1.153 years.
+- **Japan (JPN) SCR (ES 99.0%):** +1.153 years.
 - **Observation:** Risk convergence identified at the longevity frontier.
 
 ## 5. Model Robustness & Sensitivity (Clean Run Audit)
