@@ -2,7 +2,7 @@
 ## *Beyond Linear Coherence with LSTM and Explainable AI (XAI)*
 
 ### 🎯 Project Objective
-To evolve the LSTM-based mortality framework (from Project 03) into a global, auditable, and biologically consistent research paper. This project aims to demonstrate that Deep Learning outperforms classical actuarial models (Lee-Carter, Li-Lee, CBD) in terms of predictive accuracy, cross-population coherence, and financial utility, meeting the standards for an **arXiv preprint**.
+To evolve the LSTM-based mortality framework (from Project 03) into a global, auditable, and biologically consistent research paper. This project aims to show that Deep Learning outperforms classical actuarial models (Lee-Carter, Li-Lee, CBD) in terms of predictive accuracy, cross-population coherence, and financial utility, meeting the standards for an **arXiv preprint**.
 
 ---
 

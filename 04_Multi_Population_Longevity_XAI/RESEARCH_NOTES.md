@@ -25,8 +25,8 @@
 ## 2. Preliminary Observations (EDA & LC)
 - **Norway Volatility (Fig. 03)**: Norway shows significant instability in its mortality index ($k_t$) post-2010 compared to larger populations.
     - *Statistical Insight*: Smaller populations have higher variance. A few deaths more or less significantly shift the $k_t$ in a rank-1 SVD model.
-    - *Demographic Insight*: Evidence of a "harvesting effect"—a period of exceptionally low mortality (2011-2015) followed by a rebound as the fragile population "catch-up" with biological limits.
-- **The 2011 Inflection**: Most countries exhibit a "deceleration gap"—a visible change in the slope of $k_t$ around 2011. Standard linear models struggle to adapt to this structural change.
+    - *Demographic Insight*: Evidence of a "harvesting effect", i.e. a period of exceptionally low mortality (2011-2015) followed by a rebound as the fragile population "catch-up" with biological limits.
+- **The 2011 Inflection**: Most countries exhibit a "deceleration gap", i.e. a visible change in the slope of $k_t$ around 2011. Standard linear models struggle to adapt to this structural change.
 - **Japan's Catch-up**: Japan started with the highest mortality in 1956 but achieved the fastest rate of improvement, crossing all other countries by the 1980s to become the global longevity leader.
 
 ## 3. Lee-Carter Baseline (Independent Modeling)
@@ -238,6 +238,29 @@ Simulated a breakthrough in 2026 reducing $m_x$ by 10%.
 | :--- | :--- | :--- | :--- |
 | **Median e0 (2050)** | 84.77 years | 85.77 years | **+1.00 yr** |
 
+### 14.3 Reverse Stress Test: Critical Shock Threshold ($\delta^*$)
+Instead of applying an arbitrary shock and measuring its impact, we invert the problem: what is the critical mortality reduction $\delta^*$ that would exhaust the SCR buffer? This is the standard reverse stress test approach required by FINMA under the SST framework.
+
+**Methodology:**
+1. Leverage the actuarial approximation that a uniform reduction in $m_x$ translates approximately linearly to an increase in $e_0$ for small-to-moderate shocks.
+2. Verify this linearity by testing multiple shock levels (5%, 10%, 15%, 20%) and computing the resulting $\Delta e_0$.
+3. Compute $\delta^* = \text{SCR}_{\text{ES}} / (\Delta e_0 / \delta)$, i.e., the shock level that produces an $e_0$ increase exactly equal to the ES-based SCR.
+
+**Results (Switzerland, 2050):**
+
+| Metric | Value |
+| :--- | :--- |
+| Mean e0 (2050) | 84.77 years |
+| ES 99.0% (SST) | 85.93 years |
+| SCR (ES) | +1.153 years |
+| Critical Threshold ($\delta^*$) | 23.3% |
+| Linearity Status | LINEAR (CV < 5%) |
+| 10% Shock Impact | +0.494 years |
+| 10% Shock as % of SCR | 42.8% |
+
+- **Interpretation**: A permanent, uniform reduction in mortality rates of 23.3% would exhaust the ES 99.0% solvency buffer for Switzerland.
+- **Regulatory Significance**: This provides a concrete, quantifiable answer to the question "what must happen to break the model's solvency buffer?", which is the standard reverse stress test formulation under the SST framework.
+
 ## 15. Final Consolidation: Multi-Population Convergence (Fig. 13)
 
 ### 15.1 The Longevity Frontier Synthesis
@@ -245,7 +268,7 @@ Visualizes median trajectories for all six nations.
 
 ### 15.2 Key Takeaways and Project Conclusions
 - **Implicit Convergence Mechanism**: West Germany exhibits the steepest trajectory, reducing the gap with leaders.
-- **Quantification of Risk**: Actuarial Risk Margin for Switzerland calculated at **±0.873 years**.
+- **Quantification of Risk**: Actuarial Risk Margin for Switzerland calculated at **±0.879 years**.
 
 ## 16. Biological Consistency & Monotonicity Audit (Fig. 14)
 
@@ -361,3 +384,23 @@ While the 15-year window yields the lowest RMSE, the **10-year lookback** remain
 
 ### 21.3 Conclusion
 The analysis proves that the LSTM's superiority is rooted in its ability to process at least a decade of history. This empirical evidence directly addresses the "Model Risk" concerns by proving that the architecture is optimized for the specific "memory depth" of frontier mortality.
+
+## 22. Ablation Studies (Notebook 06)
+
+### 22.1 First Differences vs Absolute Levels
+- **Champion (Differences + MBC)**: RMSE 15.90
+- **Ablation (Levels)**: RMSE 30.93
+- **Improvement from differencing**: +48.6%
+- **Conclusion**: First-difference transformation is essential for generalization beyond the training period.
+
+### 22.2 With MBC vs Without MBC
+- **With MBC**: RMSE 15.90
+- **Without MBC**: RMSE 19.53
+- **Improvement from MBC**: +18.6%
+- **Conclusion**: MBC accounts for nearly one-fifth of out-of-sample accuracy, confirming its role as a critical stabilizer.
+
+### 22.3 Multi-Population (7D) vs Single-Population (1D)
+- **Multi-Population (7 factors)**: RMSE 15.90
+- **Single-Population (Kt only)**: RMSE 4.26
+- **Observation**: The single-population model predicts $K_t$ more accurately because it concentrates all capacity on one target. The multi-population approach trades per-factor accuracy for cluster-wide coherence, enabling SHAP cross-country analysis and simultaneous projections for all 6 nations.
+- **Note**: This result is not included in the paper but is documented here for transparency.

@@ -16,7 +16,7 @@
 ## 3. Governance & Validation Verdicts
 ### A. Biological Consistency
 - **Monotonicity Test:** PASS (Confirmed Gompertzian compliance for all six nations, ages 40-90).
-- **Monotonicity FAIL (Youth):** None — all countries pass the monotonicity audit.
+- **Monotonicity FAIL (Youth):** None. All countries pass the monotonicity audit.
 
 ### B. Statistical Robustness
 - **Out-of-Sample Performance:** +17.40% RMSE improvement over Li-Lee in Sweden.
@@ -27,6 +27,12 @@
 - **Switzerland (CHE) SCR (ES 99.0%):** +1.153 years.
 - **Japan (JPN) SCR (ES 99.0%):** +1.153 years.
 - **Observation:** Risk convergence identified at the longevity frontier.
+
+### Reverse Stress Test (SST Compliance)
+- **Critical Shock Threshold ($\delta^*$):** 23.3% (Switzerland).
+- **Interpretation:** A permanent, uniform reduction in mortality rates of 23.3% would exhaust the ES 99.0% solvency buffer.
+- **Linearity Verification:** PASS (CV < 5% across 5%-20% shock range).
+- **10% Shock Calibration:** Consumes 42.8% of the SCR buffer (+0.494 years out of +1.153 years).
 
 ## 5. Model Robustness & Sensitivity (Clean Run Audit)
 - **Lookback Optimization**: Sensitivity analysis (Fig 19) revealed that RMSE decreases as the lookback window increases (5y: 7.09, 10y: 7.01, 15y: 6.85). 
