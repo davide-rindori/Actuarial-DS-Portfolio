@@ -1,10 +1,10 @@
 # Actuarial Data Science Portfolio
 
-**Davide Rindori, PhD** — SAV Actuarial Candidate · Data Scientist · PhD in Physics
+**Davide Rindori, PhD** — Actuarial Data Scientist · SAV Candidate · PhD in Theoretical Physics
 
 ---
 
-This repository collects four independent research projects at the intersection of Actuarial Science, Machine Learning, and Quantitative Risk Management. Each project addresses a distinct domain — P&C Pricing, NatCat Climate Risk, Single-Population Longevity, and Multi-Population Longevity — with a consistent emphasis on statistical rigour, model governance, and regulatory applicability under Swiss Solvency Test (SST) and Solvency II frameworks.
+This repository collects four independent research projects at the intersection of Actuarial Science, Machine Learning, and Quantitative Risk Management. I build quantitative risk models for Life, P&C, and Climate, bridging actuarial theory with modern ML. Each project addresses a distinct domain — P&C Pricing, NatCat Climate Risk, Single-Population Longevity, and Multi-Population Longevity — with a consistent emphasis on statistical rigour, model governance, and regulatory applicability under Swiss Solvency Test (SST) and Solvency II frameworks.
 
 ---
 
@@ -74,14 +74,14 @@ A frequency-severity pricing study on the French MTPL dataset (~670,000 policies
 | **Actuarial** | Stochastic Longevity Modelling (Single & Multi-Population), SCR Calibration (VaR / ES), EVT, GLM, Frequency-Severity Pricing, Longevity Swap Valuation |
 | **Machine Learning** | LSTM (Hierarchical, MC Dropout), XGBoost, CANN, Bayesian Hyperparameter Optimisation, SHAP / XAI |
 | **Engineering** | Python (TensorFlow/Keras, Scikit-learn, Pandas, xarray, SciPy), Git, LaTeX, SQL |
-| **Regulatory** | Swiss Solvency Test (SST), Solvency II, Model Risk Management, Internal Model Governance |
+| **Regulatory** | Swiss Solvency Test (SST), Solvency II, Model Risk Management, Internal Model Governance, Reverse Stress Testing |
 
 ---
 
 ## Education & Certification
 
 - **SAV Actuarial Candidate** — Swiss Association of Actuaries (Schweizerische Aktuarvereinigung)
-- **PhD in Physics** — University of Florence. Specialisation in complex systems modelling and stochastic processes.
+- **PhD in Theoretical Physics** — University of Florence (Doctor Europaeus). Thesis: *Entropy Current in Relativistic Quantum Statistical Mechanics*. Research focused on exact analytical methods for stochastic and thermodynamic systems far from equilibrium, applying quantum field theory and statistical mechanics to the quark-gluon plasma. Supervisor: Prof. F. Becattini.
 
 ---
 
