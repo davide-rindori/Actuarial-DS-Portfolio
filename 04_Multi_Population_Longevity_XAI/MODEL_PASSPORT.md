@@ -1,7 +1,8 @@
 # Model Passport: Hierarchical LSTM Mortality Framework
 **Version:** 1.0.0 (Pre-print Edition)  
 **Status:** Validated & Audited  
-**Owner:** Davide Rindori
+**Owner:** Davide Rindori  
+**Paper:** [arXiv:2605.06438](https://arxiv.org/abs/2605.06438)
 
 ## 1. Model Identity
 - **Model Type:** Hybrid Neural-Actuarial (Hierarchical LSTM + Mean-Bias Correction).

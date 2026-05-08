@@ -1,6 +1,8 @@
 # Project 04: Neural Multi-Population Mortality
 ## *Beyond Linear Coherence with LSTM and Explainable AI (XAI)*
 
+📄 **Paper**: [arXiv:2605.06438](https://arxiv.org/abs/2605.06438)
+
 This repository contains the complete research pipeline for forecasting mortality rates across a high-longevity 6-country cluster (**Switzerland, Sweden, Norway, West Germany, Netherlands, and Japan**). The project challenges classical actuarial models (Lee-Carter, Li-Lee, CBD) by introducing a **Hierarchical LSTM** architecture capable of capturing non-linear trends and persistent structural shifts.
 
 ## 🎯 Research Objectives
