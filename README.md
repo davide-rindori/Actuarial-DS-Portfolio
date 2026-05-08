@@ -24,7 +24,7 @@ A complete research pipeline for forecasting mortality across a high-longevity 6
 - **Ablation Studies:** Systematic decomposition of design choices confirms that First Differences contribute **+48.6%** and MBC contributes **+18.6%** to out-of-sample accuracy, validating the hybrid architecture.
 - **Longevity Swap Pricing:** Stochastic mortality trajectories are translated into discounted cash flows for a 30-year Longevity Swap (Cohort 65).
 - **Explainability (XAI):** SHAP influence mapping decomposes the "Black Box", revealing that Norway's regional proximity signal and Switzerland's autoregressive dynamics jointly drive local mortality projections.
-- **Documentation:** Includes a comprehensive [Model Passport](./04_Multi_Population_Longevity_XAI/MODEL_PASSPORT.md), detailed [Research Notes](./04_Multi_Population_Longevity_XAI/RESEARCH_NOTES.md), and a [Roadmap](./04_Multi_Population_Longevity_XAI/ROADMAP.md).
+- **Documentation:** Includes a comprehensive [Model Passport](./04_Multi_Population_Longevity_XAI/MODEL_PASSPORT.md), detailed [Research Notes](./04_Multi_Population_Longevity_XAI/RESEARCH_NOTES.md), and a [Roadmap](./04_Multi_Population_Longevity_XAI/ROADMAP.md). Paper available on [arXiv:2605.06438](https://arxiv.org/abs/2605.06438).
 
 ---
 
