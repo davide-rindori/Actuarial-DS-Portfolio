@@ -1,0 +1,21 @@
+# Data (raw HMD files)
+data/raw/*.txt
+
+# Model checkpoints (large binary files)
+models/*.h5
+models/*.keras
+models/*.pkl
+models/tuning/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+
+# LaTeX (entire folder — paper managed separately)
+latex/
