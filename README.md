@@ -4,11 +4,25 @@
 
 ---
 
-This repository collects four independent research projects at the intersection of Actuarial Science, Machine Learning, and Quantitative Risk Management. I build quantitative risk models for Life, P&C, and Climate, bridging actuarial theory with modern ML. Each project addresses a distinct domain — P&C Pricing, NatCat Climate Risk, Single-Population Longevity, and Multi-Population Longevity — with a consistent emphasis on statistical rigour, model governance, and regulatory applicability under Swiss Solvency Test (SST) and Solvency II frameworks.
+This repository collects five research projects at the intersection of Actuarial Science, Machine Learning, and Quantitative Risk Management. I build quantitative risk models for Life, P&C, and Climate, bridging actuarial theory with modern ML. Each project addresses a distinct domain — P&C Pricing, NatCat Climate Risk, Single-Population Longevity, Multi-Population Longevity, and Constrained Neural Forecasting — with a consistent emphasis on statistical rigour, model governance, and regulatory applicability under Swiss Solvency Test (SST) and Solvency II frameworks.
 
 ---
 
 ## Project Index
+
+### 5 · [Actuarial-Informed Neural Networks](./05_Actuarial_Informed_Neural_Networks) 🚧
+
+**Domain:** Multi-Population Longevity · Constrained Deep Learning · Credibility Theory · Regulatory Validation
+
+A challenger internal model that embeds actuarial domain knowledge directly into the neural network training process. Serves as an alternative to both the Li-Lee benchmark and the unconstrained LSTM framework (Project 04), with sex-specific projections (M/F) and regulatory-grade robustness.
+
+- **Constrained Loss (AINN):** Differentiable penalties for Li-Lee coherence, Gompertzian monotonicity, and stationarity — enforced during training, not verified post-hoc.
+- **MBC as Bayesian Shrinkage:** Formalisation of Mean-Bias Correction in learning-theoretic terms, connecting to credibility theory.
+- **Robustness Protocol:** Multi-seed table, rolling-window validation, and fat-tail process noise (Student-t, bootstrap).
+- **Model-Based Stress Test:** Mortality shocks translated into the ΔK_t domain and injected into the recursive forecast for FINMA/EIOPA validation.
+- **Sex-Specific Modelling:** Male and Female mortality modelled separately for production-grade L&H applicability.
+
+---
 
 ### 4 · [Neural Multi-Population Mortality: Beyond Linear Coherence](./04_Multi_Population_Longevity_XAI)
 
@@ -72,7 +86,7 @@ A frequency-severity pricing study on the French MTPL dataset (~670,000 policies
 | Category | Detail |
 | :--- | :--- |
 | **Actuarial** | Stochastic Longevity Modelling (Single & Multi-Population), SCR Calibration (VaR / ES), EVT, GLM, Frequency-Severity Pricing, Longevity Swap Valuation |
-| **Machine Learning** | LSTM (Hierarchical, MC Dropout), XGBoost, CANN, Bayesian Hyperparameter Optimisation, SHAP / XAI |
+| **Machine Learning** | LSTM (Hierarchical, MC Dropout), Actuarial-Informed Neural Networks (PINN-style), XGBoost, CANN, Bayesian Hyperparameter Optimisation, SHAP / XAI |
 | **Engineering** | Python (TensorFlow/Keras, Scikit-learn, Pandas, xarray, SciPy), Git, LaTeX, SQL |
 | **Regulatory** | Swiss Solvency Test (SST), Solvency II, Model Risk Management, Internal Model Governance, Reverse Stress Testing |
 
