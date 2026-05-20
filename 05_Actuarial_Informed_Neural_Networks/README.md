@@ -54,4 +54,4 @@ Mortality shocks translated into the ΔK_t domain and injected into the recursiv
 - **Design**: Viridis colour palette; Helvetica typography.
 
 ## Status
-🚧 In development.
+🚧 In development. Notebooks 01 (Data & EDA) and 02 (Li-Lee Benchmarking) complete. Proceeding to Notebook 03 (Constrained Loss Design).

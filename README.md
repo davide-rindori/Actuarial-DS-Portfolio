@@ -1,6 +1,6 @@
 # Actuarial Data Science Portfolio
 
-**Davide Rindori, PhD** — Actuarial Data Scientist · SAV Candidate · PhD in Theoretical Physics
+**Dr. Davide Rindori** — Actuarial Data Scientist · SAV Candidate · PhD in Theoretical Physics
 
 ---
 

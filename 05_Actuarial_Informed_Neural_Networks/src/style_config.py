@@ -29,6 +29,11 @@ COUNTRIES = {
     'JPN': 'Japan'
 }
 
+# Explicit color mapping: same order as Project 04, Viridis palette
+import seaborn as sns
+_PALETTE = sns.color_palette("viridis", len(COUNTRIES))
+COUNTRY_COLORS = {code: _PALETTE[i] for i, code in enumerate(COUNTRIES)}
+
 
 # --- Base style (shared properties) ---
 
@@ -119,13 +124,13 @@ def save_dual(fig, name, notebook_dir="../reports/figures", paper_dir="../latex/
     # --- Notebook version (as-is, with titles) ---
     fig.savefig(notebook_path, dpi=300, bbox_inches="tight")
 
-    # --- Paper version (remove titles, re-save) ---
-    # Store original titles
-    original_titles = {}
-    for ax in fig.get_axes():
-        original_titles[id(ax)] = ax.get_title()
-        ax.set_title("")
-
+    # --- Paper version (remove suptitle only, keep subplot labels) ---
+    # Store and remove suptitle
+    original_suptitle = ""
+    if hasattr(fig, '_suptitle') and fig._suptitle is not None:
+        original_suptitle = fig._suptitle.get_text()
+        fig._suptitle.set_text("")
+    
     # Store and update figure size for paper
     original_size = fig.get_size_inches()
     fig.set_size_inches(10, 6)
@@ -134,5 +139,5 @@ def save_dual(fig, name, notebook_dir="../reports/figures", paper_dir="../latex/
 
     # Restore original state (so notebook display is unaffected)
     fig.set_size_inches(original_size)
-    for ax in fig.get_axes():
-        ax.set_title(original_titles[id(ax)])
+    if hasattr(fig, '_suptitle') and fig._suptitle is not None:
+        fig._suptitle.set_text(original_suptitle)
