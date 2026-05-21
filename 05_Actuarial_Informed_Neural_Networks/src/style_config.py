@@ -95,18 +95,21 @@ def set_style(mode="notebook"):
     return COUNTRIES
 
 
-def save_dual(fig, name, notebook_dir="../reports/figures", paper_dir="../latex/figures"):
+def save_dual(fig, name, notebook_dir="../reports/figures", paper_dir="../latex/figures",
+              keep_panel_labels=True):
     """
     Save a figure in both notebook and paper formats.
 
-    This is a clean dual save: the paper version is re-rendered at paper
-    dimensions without titles — no temporary files, no PIL resizing.
+    This is a clean dual save: the paper version removes the main title
+    (suptitle) but optionally keeps short panel labels (e.g., "Male", "Female").
 
     Args:
         fig: matplotlib Figure object.
         name: Base filename without extension (e.g., "fig01_mortality_surface").
         notebook_dir: Directory for notebook-quality figures (with titles).
-        paper_dir: Directory for paper-quality figures (no titles, compact).
+        paper_dir: Directory for paper-quality figures (no main title).
+        keep_panel_labels: If True, keep short subplot titles (<=20 chars) that
+                          serve as panel identifiers. If False, remove all titles.
 
     Usage in notebooks:
         fig, ax = plt.subplots()
@@ -124,12 +127,21 @@ def save_dual(fig, name, notebook_dir="../reports/figures", paper_dir="../latex/
     # --- Notebook version (as-is, with titles) ---
     fig.savefig(notebook_path, dpi=300, bbox_inches="tight")
 
-    # --- Paper version (remove suptitle only, keep subplot labels) ---
+    # --- Paper version (remove main title, optionally keep panel labels) ---
     # Store and remove suptitle
     original_suptitle = ""
     if hasattr(fig, '_suptitle') and fig._suptitle is not None:
         original_suptitle = fig._suptitle.get_text()
         fig._suptitle.set_text("")
+
+    # Store and selectively remove axes titles
+    original_titles = {}
+    for ax in fig.get_axes():
+        title = ax.get_title()
+        original_titles[id(ax)] = title
+        # Keep short panel labels (e.g., "Male", "Female", "Male — Age 65")
+        if not keep_panel_labels or len(title) > 30:
+            ax.set_title("")
     
     # Store and update figure size for paper
     original_size = fig.get_size_inches()
@@ -139,5 +151,7 @@ def save_dual(fig, name, notebook_dir="../reports/figures", paper_dir="../latex/
 
     # Restore original state (so notebook display is unaffected)
     fig.set_size_inches(original_size)
+    for ax in fig.get_axes():
+        ax.set_title(original_titles[id(ax)])
     if hasattr(fig, '_suptitle') and fig._suptitle is not None:
         fig._suptitle.set_text(original_suptitle)
