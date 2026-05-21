@@ -11,3 +11,4 @@ keras-tuner==1.4.7
 scikit-learn==1.4.1
 shap==0.45.0
 statsmodels==0.14.1
+optuna==3.6.1
