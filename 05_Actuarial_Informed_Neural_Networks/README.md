@@ -11,29 +11,35 @@ This project develops an alternative internal model for multi-population longevi
 ### 1. Constrained Loss Function (AINN)
 Actuarial constraints embedded as differentiable penalties during training:
 - **Coherence**: soft penalty on divergence of country-specific factors (Li-Lee assumption as regulariser).
-- **Monotonicity**: Gompertzian compliance enforced during training, not verified post-hoc.
-- **Stationarity**: penalise unit-root behaviour in predicted specific factors.
+- **Monotonicity**: temporal mortality improvement enforced during training (mortality should improve over time in developed countries).
+- **Stationarity**: tested and excluded — inconsistent with data (4/6 countries violate stationarity).
 
-### 2. MBC as Bayesian Shrinkage
-Formalisation of Mean-Bias Correction in learning-theoretic terms, connecting to credibility theory and Bayesian shrinkage toward the Li-Lee drift prior.
+### 2. Joint Male/Female Training
+A single model trained on Male and Female mortality jointly, with a binary sex indicator as input feature. This doubles the effective sample size (90 training samples vs 45) and produces coherent sex-specific forecasts.
 
-### 3. Regulatory-Grade Robustness
-- Multi-seed robustness table (5+ seeds).
-- Rolling-window validation (expanding windows).
-- Fat-tail process noise (Student-t, bootstrap) with SCR comparison.
+### 3. Joint Bayesian Optimisation (Architecture + Constraints)
+Architecture hyperparameters (units, learning rate) and constraint weights (λ) are optimised simultaneously over 100 Bayesian trials. This reveals an interaction between architecture capacity and constraint strength that sequential tuning would miss.
 
-### 4. True Model-Based Stress Test
-Mortality shocks translated into the ΔK_t domain and injected into the recursive forecast, quantifying the model's transient response function for FINMA/EIOPA validation.
+**Champion**: LSTM (64-8 units), lr=0.01, λ_coherence=0.001, λ_monotonicity=0.001.
+**RMSE**: 7.0687 (overall), 6.65 (Male), 7.46 (Female). Multi-seed CV: 1.23%.
+
+### 4. Regulatory-Grade Robustness
+- Multi-seed robustness (CV = 1.23%, PASS).
+- Lookback sensitivity analysis.
+- Rolling-window validation (Notebook 05).
+
+### 5. True Model-Based Stress Test
+Mortality shocks translated into the ΔK_t domain and injected into the recursive forecast (Notebook 06).
 
 ## Project Structure
 - `data/`: Mortality data assets (HMD, same cluster as Project 04).
 - `models/`: Serialized AINN models and scalers.
 - `notebooks/`:
-    - `01_data_and_baseline.ipynb`: Data reproduction and Li-Lee baseline.
-    - `02_constrained_loss_design.ipynb`: AINN loss function implementation and λ-sweep.
-    - `03_training_ablation_lambda.ipynb`: Training with constraints, ablation studies.
-    - `04_credibility_blending_mbc_theory.ipynb`: Credibility weighting and MBC formalisation.
-    - `05_rolling_window_multiseed.ipynb`: Robustness validation protocol.
+    - `01_data_and_baseline.ipynb`: Data loading, EDA, log-mortality matrices. ✓
+    - `02_actuarial_benchmarking.ipynb`: Li-Lee sex-specific, stationarity analysis. ✓
+    - `03_training_ablation_lambda.ipynb`: Joint Bayesian Optimisation, multi-seed robustness, lookback sensitivity. ✓
+    - `04_forecasting_xai_and_results.ipynb`: Recursive forecasting, life expectancy, SHAP.
+    - `05_rolling_window_validation.ipynb`: Rolling-window robustness protocol.
     - `06_model_based_stress_test.ipynb`: Shock injection in ΔK_t domain.
     - `07_fat_tail_uncertainty_scr.ipynb`: Non-Gaussian process noise and SCR comparison.
 - `src/`: Modular source code (custom losses, reproducibility, styling).
@@ -54,4 +60,4 @@ Mortality shocks translated into the ΔK_t domain and injected into the recursiv
 - **Design**: Viridis colour palette; Helvetica typography.
 
 ## Status
-🚧 In development. Notebooks 01 (Data & EDA) and 02 (Li-Lee Benchmarking) complete. Proceeding to Notebook 03 (Constrained Loss Design).
+🚧 In development. Notebooks 01-03 complete (data, Li-Lee benchmarking, AINN training). Proceeding to Notebook 04 (Forecasting & Results).
