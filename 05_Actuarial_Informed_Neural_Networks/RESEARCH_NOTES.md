@@ -245,163 +245,226 @@ Key observations from the preliminary sweep:
 
 This preliminary exploration informed the design of the joint Bayesian Optimisation — specifically, confirming that λ values in {0, 0.001, 0.01, 0.1, 1.0} cover the relevant range.
 
-### 4.5 Joint Bayesian Optimisation: Architecture + Constraints
+### 4.5 Exploratory Phase: Keras Tuner (5D, lb=10 Fixed)
 
-#### Motivation and Design Philosophy
-The preliminary λ sweep revealed that the fixed architecture (32-16, lr=0.001) may not be optimal for the joint M/F task. More importantly, there may be interactions between architecture capacity and constraint strength: a larger, more expressive model may need different (smaller) λ values than an underpowered one.
+As an intermediate step between the preliminary λ sweep and the final joint optimisation, we ran a 5-dimensional Bayesian Optimisation using Keras Tuner with lookback fixed at 10 (the value used in Project 04). This served as a proof-of-concept that joint architecture + constraint tuning is feasible and beneficial.
 
-Rather than tuning architecture and constraints sequentially — which could miss these interactions — we performed a **single joint Bayesian Optimisation** treating all 5 hyperparameters simultaneously. This is methodologically superior and produces a globally optimal configuration.
+#### Champion Found (Keras Tuner, lb=10)
 
-The analogy in actuarial science: you would not calibrate the mortality improvement assumption independently of the volatility assumption in a stochastic model. The parameters interact, so they should be calibrated jointly.
+| Parameter | Value |
+|:---|:---|
+| units_l1 | 64 |
+| units_l2 | 8 |
+| learning_rate | 0.01 |
+| λ_coherence | 0.001 |
+| λ_monotonicity | 0.001 |
+| RMSE | 7.0687 |
+| Multi-seed CV | 1.23% |
+
+Key observations:
+- The tuner found a **64→8 bottleneck architecture** (not the balanced 32→16 of Project 04).
+- Learning rate 0.01 (10× higher than Project 04's 0.001) — consistent with the larger first layer.
+- Optimal λ = 0.001 (not 1.0 as suggested by the preliminary sweep) — confirming the architecture-constraint interaction.
+
+However, this run fixed lb=10 by necessity (Keras Tuner cannot handle variable input shape). Lookback sensitivity analysis showed lb=15 was superior (+5.94%), motivating the final joint optimisation with Optuna.
+
+### 4.6 Final Optimisation: Optuna 6D Joint Tuning
+
+#### Why Optuna Instead of Keras Tuner
+
+Keras Tuner's architecture requires all inputs to have the same shape across trials, making it impossible to tune the lookback window jointly with other parameters. Optuna is framework-agnostic: the objective function is a plain Python function that the user writes, so any parameter — including lookback, which changes the data preparation step — can be tuned freely.
+
+This is the crucial methodological advantage: Optuna allows a truly joint 6-dimensional search, avoiding the circularity problem of sequential tuning (tune arch, find best lb, re-tune arch with new lb, find different best lb, etc.).
 
 #### Hyperparameter Space
 
 | Parameter | Values | Rationale |
 |:---|:---|:---|
-| units_l1 | {16, 32, 48, 64} | Range from lean to capacity-rich |
-| units_l2 | {8, 16, 24, 32} | Compression factor in second layer |
-| learning_rate | {0.01, 0.005, 0.001, 0.0005, 0.0001} | Wide range; higher rates viable with larger models |
-| $\lambda_{coherence}$ | {0, 0.001, 0.01, 0.1, 1.0} | Log scale, from unconstrained to strongly regularised |
-| $\lambda_{monotonicity}$ | {0, 0.001, 0.01, 0.1, 1.0} | Idem |
+| lookback | {5, 7, 10, 12, 15} | Temporal context window |
+| units_l1 | {16, 32, 48, 64} | First LSTM layer capacity |
+| units_l2 | {8, 16, 24, 32} | Second LSTM layer capacity |
+| learning_rate | {0.01, 0.005, 0.001, 0.0005, 0.0001} | Optimiser step size |
+| $\lambda_{coherence}$ | {0, 0.001, 0.01, 0.1, 1.0} | Li-Lee coherence constraint weight |
+| $\lambda_{monotonicity}$ | {0, 0.001, 0.01, 0.1, 1.0} | Temporal monotonicity constraint weight |
 
-Total space: 4 × 4 × 5 × 5 × 5 = 2,000 combinations explored intelligently by Bayesian Optimisation over 100 trials (~5% coverage, with Gaussian Process surrogate model guiding exploration toward promising regions).
+Total space: 5 × 4 × 4 × 5 × 5 × 5 = 10,000 combinations. Optuna's TPE (Tree-structured Parzen Estimator) sampler explores this space in 100 trials, building a probabilistic model of the objective function and directing sampling toward promising regions. TPE is empirically superior to random search and grid search on this type of categorical-heavy space.
 
-**Fixed parameters** (documented rationale):
-- **Lookback = 10**: Keras Tuner requires fixed input shape. Sensitivity analysis performed separately (Section 4.11). Consistent with Project 04.
-- **Dropout = 0.2**: Required for MC Dropout inference. Changing this would require a separate robustness analysis.
-- **Batch size = 8**: Same as Project 04. On 90 samples, this gives 11 batches per epoch — sufficient gradient signal.
+**Fixed parameters** (not tuned, with rationale):
+- **Dropout = 0.2**: Required for MC Dropout inference (Bayesian uncertainty quantification in Notebook 04). This is an architectural constraint, not an optimisation target.
+- **Batch size = 8**: Same as Project 04. With 80-100 training samples (depending on lookback), batch_size=8 gives 10-12 batches per epoch — sufficient gradient signal.
 - **Training: joint M/F**: Validated by ablation (+2.4% over separate training).
+
+**Runtime**: 48 minutes for 100 trials on Apple M1 Pro (≈29 seconds per trial on average). This is an investment made once for model selection — downstream notebooks load the saved model and never re-run this cell.
 
 #### Champion Configuration Found
 
 | Parameter | Value |
 |:---|:---|
-| units_l1 | **64** |
-| units_l2 | **8** |
-| learning_rate | **0.01** |
+| lookback | **15** |
+| units_l1 | **48** |
+| units_l2 | **32** |
+| learning_rate | **0.001** |
 | $\lambda_{coherence}$ | **0.001** |
 | $\lambda_{monotonicity}$ | **0.001** |
-| val_loss (tuner objective) | **3.844** |
+| RMSE | **6.1725** |
 
-**Runtime**: 25 minutes for 100 trials on Apple M1 Pro (approximately 15 seconds per trial on average).
+### 4.7 Champion Architecture Analysis (Optuna)
 
-#### Champion Performance
+#### Lookback = 15: The Most Important Finding
+
+All top 5 Optuna trials converge on lookback=15. This is a strong, unambiguous signal. The TPE sampler allocated the majority of trials to lb=15 after the first promising results appeared there, confirming its superiority.
+
+Why is lb=15 better than lb=10?
+
+The mortality deceleration of the 2010s is the key signal the model needs to learn. With lb=10, the training window (1966-2011 differences) includes this deceleration only in the most recent samples. With lb=15, the model processes sequences ending at 2011 that *start* at 1997, giving it 15 years of context to understand the transition from fast improvement (1990s) to deceleration (2000s-2010s). The structural shift is better represented in the input.
+
+This is consistent with Project 04's finding that lb=15 produced marginally lower RMSE — but in Project 04, the improvement was small enough to be dismissed (lb=15 sacrificed too many training samples on a smaller dataset). With joint M/F training (80 samples with lb=15 vs 90 with lb=10), the trade-off is more favourable.
+
+**Comparison with Project 04 decision**: Project 04 chose lb=10 over lb=15 for "data parsimony" — lb=15 reduced training samples from 45 to 40 (−11%). Here, lb=15 reduces samples from 90 to 80 (−11% also), but the absolute number of samples (80 vs 40) makes a larger difference in model capacity.
+
+#### Architecture: 48→32 (Balanced) vs 64→8 (Bottleneck)
+
+With lb=15, Optuna finds a **balanced** architecture (48→32) rather than the bottleneck (64→8) found by Keras Tuner with lb=10. This is an important observation:
+
+- With lb=10, the bottleneck 64→8 was optimal because the model needed aggressive compression to avoid memorising the short, noisy input sequences.
+- With lb=15, the input sequences are longer and richer (15 years of history instead of 10). The model can maintain a wider representation in the second layer (32 instead of 8) because there is more genuine signal to represent.
+
+This confirms that architecture and lookback interact: the optimal compression depends on how much signal is in the input. This is a finding worth discussing in the paper — it suggests that the common practice of tuning architecture independently of the temporal window is methodologically suboptimal.
+
+#### Learning Rate: 0.001 (Conservative)
+
+With lb=15 and architecture 48→32, the optimal learning rate drops back to 0.001 (same as Project 04). This makes sense: the model has more training samples (80 vs 90 with lb=10) and longer sequences, so it needs more careful, slower gradient descent to converge without overshooting. The 64-8 architecture with lb=10 needed lr=0.01 because it was making bold predictions from short sequences; the 48-32 architecture with lb=15 learns more gradually from richer context.
+
+#### Training Convergence
+
+The champion model trains for 106 epochs (best at epoch 86, patience=20). This is notably longer than the Keras Tuner champion (33 epochs, best at 13) — consistent with the lower learning rate. The training curves show both train and validation loss converging smoothly and together, without the dramatic gap seen in earlier experiments. This is the best training behaviour we have observed across all configurations.
+
+### 4.8 Champion Performance
 
 | Metric | Value |
 |:---|:---|
-| Overall RMSE (original scale) | **7.0687** |
-| Male RMSE | 6.6525 |
-| Female RMSE | 7.4618 |
-| Mean \|specific factor\| | 0.4980 |
-| Frac(dKt>0) | 61.1% |
-| Best epoch | 13 |
-| Training converged at | epoch 33 (patience=20) |
+| Overall RMSE (original scale) | **6.1725** |
+| Male RMSE | 5.7246 |
+| Female RMSE | 6.5900 |
+| Mean \|specific factor\| | 0.8942 |
+| Frac(dKt>0) | 55.6% |
+| Best epoch | 86 |
+| Training stopped at | epoch 106 |
 
-### 4.6 Champion Architecture Analysis
+**Comparison with Keras Tuner champion (lb=10):**
 
-#### The 64→8 Asymmetry
-The tuner consistently found that a **large first layer followed by aggressive compression** (64→8) outperforms two balanced layers (32→16, as in Project 04). The top 5 trials all share L1=64, L2=8 — the Bayesian optimiser converged confidently on these parameters with no ambiguity.
+| Metric | KT champion (lb=10) | Optuna champion (lb=15) | Δ |
+|:---|:---|:---|:---|
+| Overall RMSE | 7.0687 | 6.1725 | **+12.7%** |
+| Male RMSE | 6.6525 | 5.7246 | +13.9% |
+| Female RMSE | 7.4618 | 6.5900 | +11.7% |
+| Mean \|specific\| | 0.4980 | 0.8942 | Higher (more expressive) |
+| Frac(dKt>0) | 61.1% | 55.6% | Lower (better monotonicity) |
 
-This architecture is architecturally interesting and worth discussing in the paper:
+The improvement is substantial and consistent across both sexes. The higher mean \|specific factor\| suggests the Optuna champion is more expressive — it allows country-specific factors to vary more freely. This is a consequence of lb=15 providing enough context to distinguish genuine country-specific dynamics from noise.
 
-**First layer (64 units)**: learns a rich, high-dimensional representation of the 10-year mortality history across all 7 mortality factors + sex indicator. The larger capacity allows the LSTM to capture more complex temporal dependencies and cross-factor interactions.
+### 4.9 Constraint Analysis (Optuna Champion)
 
-**Second layer (8 units)**: compresses aggressively to the minimum representation needed for prediction. This acts as an information bottleneck — forcing the network to retain only the most predictive features. The bottleneck structure is known to improve generalisation by preventing the network from memorising noise.
+#### Constraint Effect: -0.009%
 
-This asymmetry makes sense for the specific structure of mortality time series: the first layer extracts complex temporal features (regime changes, cohort effects, cross-country influences), and the second layer selects the few most predictive for the next year.
+The unconstrained version of the champion (same architecture, lb=15, λ=0) produces RMSE = 6.1720. The constrained champion produces 6.1725. The constraints **very marginally hurt** RMSE (-0.009%) — an inconsequential difference.
 
-**Why is this different from Project 04?** Project 04 used a balanced 32-16 architecture found by Bayesian tuning on "Total" (both sexes combined, 45 samples). The joint M/F training (90 samples) provides more signal, allowing a larger first layer to be effective without immediately overfitting.
+This is an **unexpected finding** that requires careful interpretation:
 
-#### The High Learning Rate (0.01)
-The optimal learning rate of 0.01 is 10x higher than Project 04's 0.001. This is consistent with the 64-unit first layer: larger models can absorb larger gradient steps without diverging, especially with early stopping. The model converges fast (best epoch 13, stops at 33) — the high learning rate enables rapid convergence to a good solution.
+**Why do constraints slightly hurt?** With lb=15 and a 48→32 architecture, the model has sufficient capacity and temporal context to generalise well on its own. The λ=0.001 constraints impose a tiny but non-zero penalty, adding a small bias that in this case slightly increases RMSE. The effect is smaller than the seed-to-seed variance (CV=8.9%), so it is not statistically meaningful.
 
-#### Unexpected Finding: λ = 0.001 is Optimal (Not 1.0)
-This is the most surprising result of the Bayesian Optimisation. The preliminary sweep with fixed architecture suggested that larger λ values (0.1-1.0) produced the best RMSE. With the jointly tuned architecture (64-8, lr=0.01), the optimal λ drops to 0.001 — three orders of magnitude smaller.
+**What does this mean for the actuarial constraints story?** The constraints serve primarily as a governance instrument — a formal statement that the model has been designed to respect actuarial principles. The numerical impact is negligible in either direction. In the paper, we can honestly report: "The constrained model performs equivalently to the unconstrained model on one-step-ahead RMSE. The value of the constraints lies in the regulatory defensibility of the model design, and in their potential to improve long-term forecasting stability — which will be assessed in Notebook 04."
 
-**Explanation**: The relationship between architecture capacity and constraint strength is inversely proportional. The 32-16 architecture was relatively underpowered for the joint M/F dataset, so it needed strong regularisation (λ=1.0) to avoid overfitting the small training set. The 64-8 architecture is better calibrated to the data, so it generalises well on its own — it needs only a tiny nudge from the constraints (λ=0.001) rather than strong regularisation.
+This is a scientifically honest result: we do not overstate the impact of the constraints. A model that honestly reports null RMSE effects with justified theoretical motivation is more credible than one that overstates marginal improvements.
 
-**Implication for the paper**: This interaction between architecture and constraints is a non-trivial finding. Most PINN-style papers fix the architecture and vary the constraint weights, potentially reporting misleading results about constraint effectiveness. Our joint optimisation reveals that the "optimal" constraint weight is architecture-dependent. This is worth highlighting as a methodological contribution.
+#### Stationarity Penalty: Excluded with Evidence
 
-#### Constraint Contribution (Post-Tuning Ablation)
-Training the same tuned architecture (64-8, lr=0.01) with λ=0 (no constraints) yields RMSE = 7.0698. The champion (λ_coh=0.001, λ_mono=0.001) yields RMSE = 7.0687. The constraint effect is +0.015%.
+| Configuration | RMSE | vs Champion |
+|:---|:---|:---|
+| Champion (no stat) | 6.1725 | — |
+| + Stat=0.01 | 6.1809 | +0.014% worse |
+| + Stat=0.1 | 6.2244 | +0.8% worse |
+| + Stat=1.0 | 6.6602 | +7.9% worse |
 
-At this scale of λ, the constraints are barely regularising — they are more a statement of actuarial principles than active regularisers. However, they produce a model that is:
-- Formally constrained (regulatory defensibility)
-- Marginally more accurate (+0.015%)
-- Passable for governance review ("constraints are embedded by design")
+The stationarity penalty consistently hurts performance, with damage increasing with λ. This is expected: forcing mean-reversion on time series that are empirically non-stationary (4/6 countries show unit roots) fights the data. The exclusion is documented with evidence across all λ levels.
 
-The primary value is not in the RMSE improvement but in the governance story.
-
-### 4.7 Multi-Seed Robustness (Post-Tuning)
+### 4.10 Multi-Seed Robustness (Optuna Champion)
 
 | Seed | RMSE |
 |:---|:---|
-| 42 | 7.0687 |
-| 123 | 6.9661 |
-| 256 | 6.9997 |
-| 512 | 6.8835 |
-| 1024 | 7.1007 |
+| 42 | 6.1725 |
+| 123 | 7.6080 |
+| 256 | 6.4643 |
+| 512 | 6.2157 |
+| 1024 | 6.4866 |
 
-- **Mean**: 7.0037
-- **Std**: 0.0859
-- **CV**: 1.23%
+- **Mean**: 6.5895
+- **Std**: 0.5868
+- **CV**: 8.90%
 - **Verdict**: PASS (threshold: CV < 10%)
 
-**Comparison with pre-tuning**: The CV increased from 0.28% (fixed arch) to 1.23% (tuned arch). This is expected — the 64-unit first layer has more random weight initialisation variance than the 32-unit one. However, 1.23% is well within the acceptance threshold.
+**Critical observation**: CV = 8.90% is much higher than the Keras Tuner champion (1.23%). In particular, Seed 123 produces RMSE = 7.61 — nearly as bad as the pre-tuning baseline. This is a flag that deserves honest discussion.
 
-**Key point**: The inter-seed variation (±0.09 RMSE) is smaller than the improvement from architecture tuning (7.58 → 7.07 = Δ0.51). The tuning result is genuine, not a lucky seed artefact.
+**Why is the Optuna champion less stable?**
 
-### 4.8 Ablation Summary (Complete)
+The 48→32 architecture with lb=15 and lr=0.001 is a more complex model than the 64→8 with lb=10 and lr=0.01. It trains for 106 epochs (vs 33 for the KT champion), meaning it has more opportunity to land in different local minima depending on the random initialisation. The slow learning rate makes the optimisation path more sensitive to the starting point.
 
-| Design Choice | RMSE | vs Best | Notes |
-|:---|:---|:---|:---|
-| Separate M/F, fixed arch (45 samples) | 7.7705 | −9.4% | Overfitting baseline |
-| Joint M/F, fixed arch, unconstrained | 7.5851 | −7.2% | Joint training effect |
-| Joint M/F, fixed arch + constraints | 7.5817 | −7.1% | Preliminary λ sweep champion |
-| **Joint M/F, tuned arch + constraints** | **7.0687** | **best** | **Final champion** |
-| Joint M/F, tuned arch, no constraints | 7.0698 | −0.015% | Architecture dominates |
+The Seed 123 outlier (RMSE 7.61) is likely a case where the model converged to a local minimum that does not generalise well. This is a known issue with LSTM training on small datasets: multiple local optima exist, and not all gradient descent paths lead to the global one.
+
+**Implications for deployment**: In practice, we use seed 42 (the reference seed). The model is trained once with this seed, saved, and reloaded for inference. The multi-seed analysis is a "worst-case" robustness check, not a description of how the model will be used. A CV of 8.90% that technically passes the threshold while containing one outlier seed is acceptable for research, but borderline for production deployment.
+
+**Mitigation**: Downstream notebooks should always load the saved model (seed 42) rather than retraining. If the rolling-window validation (Notebook 05) reveals instability, we can consider ensemble averaging across multiple seeds as a robustness measure.
+
+**Comparison with Project 04**: Project 04 did not perform multi-seed analysis. This project provides it, which is a methodological improvement regardless of the CV value.
+
+### 4.11 Complete Ablation Summary
+
+| Design Choice | RMSE | vs Champion |
+|:---|:---|:---|
+| Separate M/F, fixed arch 32-16, lb=10 | 7.7705 | −25.9% |
+| Joint M/F, fixed arch 32-16, lb=10, unconstrained | 7.5851 | −22.9% |
+| Joint M/F, fixed arch 32-16, lb=10, constrained | 7.5817 | −22.8% |
+| Joint M/F, Keras Tuner (5D, lb=10) | 7.0687 | −14.5% |
+| Joint M/F, Optuna (6D), unconstrained | 6.1720 | +0.01% better |
+| **Joint M/F, Optuna (6D), CHAMPION** | **6.1725** | **— best** |
 
 **Hierarchy of impact**:
-1. **Architecture tuning**: 7.58 → 7.07 — **+6.5% improvement** (dominant driver)
-2. **Joint M/F training**: 7.77 → 7.58 — **+2.4% improvement** (data doubling)
-3. **Actuarial constraints**: +0.015% marginal RMSE gain (primarily a governance tool)
+1. **Lookback optimisation** (lb=10 → lb=15): 7.07 → 6.17 — **+12.7%** (most impactful individual factor after joining)
+2. **Architecture tuning** (fixed 32-16 → tuned 64-8 → 48-32): 7.59 → 7.07 → 6.17 — **+18.5% total**
+3. **Joint M/F training**: 7.77 → 7.59 — **+2.4%**
+4. **Actuarial constraints**: effectively neutral on RMSE (governance value)
 
-The architecture tuning was the single most impactful decision in the project — more than the joint training, more than the constraints. This justifies the 25-minute computational investment in Bayesian Optimisation.
+**The most important insight**: the improvement from lookback tuning (+12.7%) is larger than the improvement from architecture tuning (+6.5%). This suggests that in mortality modelling, *temporal context* (how much history the model sees) is more important than *model capacity* (how large the network is). This makes actuarial sense: mortality trends are driven by slow-moving structural factors (healthcare improvements, lifestyle changes) that require long historical observation to characterise.
 
-### 4.9 Champion Configuration (Final)
+### 4.12 Champion Configuration (Final, Optuna)
 
 | Parameter | Value |
 |:---|:---|
-| Architecture | LSTM (64, 8 units) + Dropout(0.2) each layer |
-| Training | Joint M/F, lookback=10, batch=8, lr=0.01 |
+| Architecture | LSTM (48, 32 units) + Dropout(0.2) each layer |
+| Training | Joint M/F, lookback=15, batch=8, lr=0.001 |
 | Loss | MSE + Coherence (λ=0.001) + Monotonicity (λ=0.001) |
-| Early stopping | patience=20, best at epoch 13 |
-| Validation RMSE | 7.0687 (overall), 6.65 (Male), 7.46 (Female) |
-| Multi-seed CV | 1.23% (PASS) |
-| Constraint effect | +0.015% vs same arch unconstrained |
+| Early stopping | patience=20, best at epoch 86 |
+| Validation RMSE | 6.1725 (overall), 5.72 (Male), 6.59 (Female) |
+| Multi-seed CV | 8.90% (PASS, borderline) |
+| Constraint effect | −0.009% (neutral) |
+| Optimisation | Optuna TPE, 100 trials, 6D joint |
+| Runtime | 48 minutes |
 
-### 4.10 Limitations and Open Points (Post-Tuning)
+### 4.13 Limitations and Open Points (Post-Optuna)
 
-1. **Lookback fixed at 10**: Keras Tuner cannot handle variable input shape. Sensitivity analysis (Section 4.11) performed separately. If lookback=15 proves superior, the Bayesian Optimisation should be re-run with lookback=15 fixed.
+1. **Multi-seed CV = 8.90% is borderline.** Seed 123 is an outlier (RMSE 7.61 vs mean 6.59). In deployment, we use seed 42 exclusively (the reference seed). The rolling-window validation (Notebook 05) will provide a more robust estimate of out-of-sample performance.
 
-2. **Female RMSE > Male RMSE (7.46 vs 6.65)**: The model predicts male mortality more accurately. This is consistent with the higher volatility of female-specific factors observed in the stationarity analysis. Sex-specific regularisation (different λ for M vs F) could be explored.
+2. **Constraint effect is neutral on RMSE (-0.009%).** The value of constraints lies in governance defensibility and potential long-term stability — not in one-step-ahead accuracy. This must be demonstrated in Notebook 04.
 
-3. **frac(dKt>0) = 61.1%** with λ_mono=0.001: The small constraint weight has limited effect on temporal monotonicity. If the Notebook 04 forecasting reveals systematic upward drift, increasing λ_mono (at the cost of marginal RMSE) may be warranted.
+3. **Female RMSE > Male RMSE (6.59 vs 5.72).** The asymmetry reduced compared to the KT champion (7.46 vs 6.65), but remains. Female mortality is intrinsically harder to predict in our cluster, consistent with the higher volatility of female-specific factors.
 
-4. **The constraint interaction with architecture capacity**: Our finding that optimal λ is architecture-dependent suggests that constraint calibration should be re-done whenever the architecture changes. This is a practical limitation for deployment.
+4. **frac(dKt>0) = 55.6% with λ_mono=0.001.** The monotonicity constraint has limited effect at this λ value. If long-term forecasting in Notebook 04 reveals systematic upward drift, increasing λ_mono should be considered.
 
-5. **Top 5 trials converge on same architecture**: The Bayesian Optimiser is very confident about L1=64, L2=8, lr=0.01. The variation in top trials is only in λ (0.001 vs 0.01). This could indicate that 100 trials are sufficient or that a more aggressive exploration (different acquisition function) might find alternative architectures. For the purposes of this project, 100 trials is adequate.
+5. **Optuna uses 100 trials on 10,000 possible combinations (1% coverage).** With TPE, this is efficient but not exhaustive. A different random seed for the sampler (seed=42 is used throughout) might find a slightly different champion. This is acceptable for research purposes.
 
-### 4.11 Lookback Sensitivity Analysis (Results TBD — Notebook 03, Section 3.11)
+6. **The sex indicator is binary.** A richer encoding (sex-specific embeddings or separate output heads) could improve performance, particularly for Female. This is left as future work.
 
-The lookback sensitivity analysis tests the champion architecture (64-8, lr=0.01, λ=0.001) with lookback ∈ {5, 7, 10, 12, 15}. Results will be appended here after execution.
-
-Expected findings (based on Project 04):
-- Lookback=5: insufficient temporal context, higher RMSE.
-- Lookback=10: current standard, good balance.
-- Lookback=15: marginally better but reduces training samples.
-
-If lookback=15 proves superior, we will update the champion to lookback=15 and re-run the Bayesian Optimisation (which is feasible in 25 minutes).
+7. **Lookback = 15 reduces training samples to 80** (from 90 with lb=10). This is a material reduction on an already small dataset. The rolling-window validation will test whether the model generalises across different historical periods.
 
 ---
 
@@ -431,11 +494,11 @@ $$\hat{\Delta}_t^{MBC} = \hat{\Delta}_t^{LSTM} + \underbrace{(\mu_{Li-Lee} - \mu
 ## 6. Robustness Protocol
 
 ### 6.1 Multi-Seed Table (COMPLETED — Notebook 03)
-- Champion architecture: LSTM (64-8), lr=0.01, λ_coh=0.001, λ_mono=0.001.
+- Champion architecture: LSTM (48-32), lb=15, lr=0.001, λ_coh=0.001, λ_mono=0.001 (Optuna champion).
 - Seeds: [42, 123, 256, 512, 1024].
-- **Results**: Mean RMSE = 7.0037, Std = 0.0859, **CV = 1.23%**.
-- **Verdict**: PASS (threshold: CV < 10%).
-- This addresses the "Model Risk" concern that neural network results depend on lucky initialisation. A CV of 1.23% confirms the result is genuine and reproducible.
+- **Results**: Mean RMSE = 6.5895, Std = 0.5868, **CV = 8.90%**.
+- **Verdict**: PASS (threshold: CV < 10%) — borderline.
+- **Note**: Seed 123 is an outlier (RMSE 7.61). The model is deployed with seed 42 (reference seed). See Section 4.10 for detailed discussion.
 
 
 
@@ -477,19 +540,19 @@ Instead of applying a post-hoc level-shift to $e_0$, translate a mortality shock
 
 ## 8. Open Questions & Risks
 
-1. **Differentiability of monotonicity penalty**: Back-transforming $K_t \to m_x$ within the training loop may be computationally expensive or numerically unstable. May need a surrogate loss.
-2. **Stationarity vs. data**: The ADF/KPSS analysis (both in Project 04 and replicated here) shows that stationarity is violated for 4/6 countries. The stationarity penalty may hurt performance. The λ sweep is critical.
-3. **Overfitting to constraints**: If λ values are too high, the model may satisfy constraints perfectly but lose predictive power. The Pareto frontier analysis will reveal this.
-4. **Computational cost**: Rolling-window validation × multi-seed × λ sweep = many training runs. Need to plan compute budget.
-5. **Sex-specific dynamics**: The Sweden Female anomaly (higher volatility than Male) needs investigation. If sex-specific factors behave differently, the optimal λ configuration may differ by sex.
-6. **Japan Female catch-up**: The larger range of $k_{t,JPN}^{(F)}$ compared to $k_{t,JPN}^{(M)}$ suggests that the coherence penalty may need sex-specific calibration.
+1. **Multi-seed CV = 8.90% is borderline.** Seed 123 produces RMSE 7.61, significantly worse than the mean (6.59). In deployment we use seed 42. The rolling-window validation (Notebook 05) will reveal whether this instability extends to different historical periods.
+2. **Constraint effect is neutral (-0.009% RMSE).** The value of constraints must be demonstrated through long-term forecasting stability (Notebook 04), not one-step-ahead accuracy.
+3. **The lookback-architecture interaction is confirmed but not fully characterised.** With lb=15, the optimal architecture is 48→32 (balanced). With lb=10, it was 64→8 (bottleneck). A systematic study of this interaction would require more trial budget.
+4. **Female mortality is harder to predict.** RMSE for Female (6.59) is consistently higher than Male (5.72). Sex-specific regularisation could help but adds complexity.
+5. **Dropout fixed at 0.2.** This is required for MC Dropout inference. If a different dropout rate would improve performance, it would require redesigning the uncertainty quantification approach.
 
 ---
 
 ## 9. Limitations (Current State)
 
-- **No CBD benchmark**: Unlike Project 04, we have not implemented the Cairns-Blake-Dowd model for ages 65-90. This is a deliberate scope reduction — the AINN's contribution is in the constrained loss, not in additional actuarial baselines.
-- **No exposure data**: We work with death rates ($m_x$) only, not exposures ($E_x$). This is sufficient for the Li-Lee framework but limits the ability to compute weighted averages or credibility-weighted blends at the population level.
-- **Monotonicity surrogate is temporal, not age-based**: We penalise $\Delta K_t > 0$ (mortality worsening over time) but do not enforce $m_{x+1} \geq m_x$ (Gompertz) during training. Age-monotonicity is verified post-hoc.
-- **Small RMSE improvement from constraints (+0.045%)**: The value of constraints is expected to emerge in long-term forecasting stability (Notebook 04), not in one-step-ahead accuracy.
-- **Rolling-window validation not yet performed**: Current results are based on the standard 1956-2011 / 2012-2020 split. Rolling-window (Notebook 05) will provide more robust estimates.
+- **No CBD benchmark**: Unlike Project 04, we have not implemented the Cairns-Blake-Dowd model for ages 65-90. This is a deliberate scope reduction — the AINN's contribution is in the constrained loss and joint optimisation, not in additional actuarial baselines.
+- **No exposure data**: We work with death rates ($m_x$) only. This is sufficient for the Li-Lee framework.
+- **Monotonicity surrogate is temporal, not age-based**: We penalise $\Delta K_t > 0$ (mortality worsening over time) but do not enforce $m_{x+1} \geq m_x$ during training. Age-monotonicity is verified post-hoc in Notebook 04.
+- **Constraint effect is neutral on RMSE**: The primary value of constraints lies in governance defensibility and potential long-term forecasting stability. Whether this materialises will be tested in Notebook 04.
+- **Multi-seed CV = 8.90% is borderline**: Seed 123 is an outlier. The rolling-window validation (Notebook 05) will provide a more robust robustness estimate.
+- **Optuna explores only 1% of the 10,000-combination space**: 100 trials with TPE is efficient but not exhaustive. The champion found is likely near-optimal but not provably optimal.

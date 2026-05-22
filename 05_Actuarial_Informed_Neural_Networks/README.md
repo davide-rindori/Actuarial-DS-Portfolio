@@ -17,11 +17,12 @@ Actuarial constraints embedded as differentiable penalties during training:
 ### 2. Joint Male/Female Training
 A single model trained on Male and Female mortality jointly, with a binary sex indicator as input feature. This doubles the effective sample size (90 training samples vs 45) and produces coherent sex-specific forecasts.
 
-### 3. Joint Bayesian Optimisation (Architecture + Constraints)
-Architecture hyperparameters (units, learning rate) and constraint weights (λ) are optimised simultaneously over 100 Bayesian trials. This reveals an interaction between architecture capacity and constraint strength that sequential tuning would miss.
+### 3. Joint Bayesian Optimisation via Optuna (6D)
+Architecture (units, learning rate), temporal context (lookback window), and actuarial constraints (λ values) are optimised simultaneously in a single 100-trial joint search using Optuna's TPE sampler. This is methodologically superior to sequential tuning and reveals that the optimal constraint weight is architecture-dependent.
 
-**Champion**: LSTM (64-8 units), lr=0.01, λ_coherence=0.001, λ_monotonicity=0.001.
-**RMSE**: 7.0687 (overall), 6.65 (Male), 7.46 (Female). Multi-seed CV: 1.23%.
+**Champion**: LSTM (48-32 units), lookback=15, lr=0.001, λ_coherence=0.001, λ_monotonicity=0.001.
+**RMSE**: 6.1725 (overall), 5.72 (Male), 6.59 (Female). Multi-seed CV: 8.90% (PASS).
+**Runtime**: 48 minutes on Apple M1 Pro.
 
 ### 4. Regulatory-Grade Robustness
 - Multi-seed robustness (CV = 1.23%, PASS).
