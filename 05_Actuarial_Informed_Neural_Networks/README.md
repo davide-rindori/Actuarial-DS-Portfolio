@@ -39,7 +39,7 @@ Mortality shocks translated into the ΔK_t domain and injected into the recursiv
     - `01_data_and_baseline.ipynb`: Data loading, EDA, log-mortality matrices. ✓
     - `02_actuarial_benchmarking.ipynb`: Li-Lee sex-specific, stationarity analysis. ✓
     - `03_training_ablation_lambda.ipynb`: Joint Bayesian Optimisation, multi-seed robustness, lookback sensitivity. ✓
-    - `04_forecasting_xai_and_results.ipynb`: Recursive forecasting, life expectancy, SHAP.
+    - `04_stochastic_forecasting.ipynb`: MC Dropout forecasting, observation-anchored e0, MBC analysis. ✓
     - `05_rolling_window_validation.ipynb`: Rolling-window robustness protocol.
     - `06_model_based_stress_test.ipynb`: Shock injection in ΔK_t domain.
     - `07_fat_tail_uncertainty_scr.ipynb`: Non-Gaussian process noise and SCR comparison.
@@ -61,4 +61,4 @@ Mortality shocks translated into the ΔK_t domain and injected into the recursiv
 - **Design**: Viridis colour palette; Helvetica typography.
 
 ## Status
-🚧 In development. Notebooks 01-03 complete (data, Li-Lee benchmarking, AINN training). Proceeding to Notebook 04 (Forecasting & Results).
+🚧 In development. Notebooks 01-04 complete (data, Li-Lee, AINN training, stochastic forecasting). Proceeding to Notebook 05 (XAI & Validation).

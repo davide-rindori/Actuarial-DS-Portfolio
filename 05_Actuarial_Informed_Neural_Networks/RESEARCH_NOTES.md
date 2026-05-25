@@ -556,3 +556,121 @@ Instead of applying a post-hoc level-shift to $e_0$, translate a mortality shock
 - **Constraint effect is neutral on RMSE**: The primary value of constraints lies in governance defensibility and potential long-term forecasting stability. Whether this materialises will be tested in Notebook 04.
 - **Multi-seed CV = 8.90% is borderline**: Seed 123 is an outlier. The rolling-window validation (Notebook 05) will provide a more robust robustness estimate.
 - **Optuna explores only 1% of the 10,000-combination space**: 100 trials with TPE is efficient but not exhaustive. The champion found is likely near-optimal but not provably optimal.
+
+---
+
+## 10. Stochastic Forecasting & Life Expectancy (Notebook 04)
+
+### 10.1 Methodology: Observation-Anchored Forecasting
+
+A key methodological contribution of this project is the **Observation-Anchored** approach to life expectancy reconstruction. Instead of reconstructing mortality entirely from Li-Lee latent factors (which introduces a rank-1 approximation bias), we anchor projections to the observed mortality at 2020 and apply only the model-predicted variation:
+
+$$\ln(m_{x,t,i}) = \ln(m_{x,2020,i})^{observed} + B_x \cdot \sum_{\tau=2021}^{t} \Delta K_\tau^{forecast}$$
+
+This approach:
+- Eliminates the rank-1 reconstruction bias that would otherwise produce $e_0$ values ~6 years below reality.
+- Uses the model only for what it is designed to do: predict *change* in mortality, not reconstruct absolute levels.
+- Is conceptually analogous to how actuarial practitioners work: start from the current best estimate and project forward.
+
+The country-specific factors ($k_{t,i}$) are fixed at their 2020 observed values, consistent with the Li-Lee stationarity assumption. This prevents the recursive drift problem observed when projecting specific factors over 30 years.
+
+### 10.2 Dual Uncertainty Framework
+
+Consistent with Project 04, we combine two sources of uncertainty:
+- **Model uncertainty (MC Dropout)**: 1,000 stochastic forward passes with Dropout active during inference. Each simulation produces a different trajectory due to the stochastic regularisation.
+- **Process uncertainty (Li-Lee calibrated noise)**: Gaussian noise with $\sigma$ calibrated on the full historical series of Li-Lee first differences. Added to each simulation at each time step.
+
+Process noise standard deviations:
+- Male $\Delta K_t$: $\sigma = 5.99$
+- Female $\Delta K_t$: $\sigma = 9.08$
+
+The higher female process noise reflects the greater historical volatility of female mortality improvements — consistent with the stationarity analysis findings.
+
+### 10.3 Mean-Bias Correction (MBC) as Bayesian Shrinkage
+
+MBC corrects the systematic drift that accumulates in recursive neural forecasts:
+$$\hat{\Delta}_t^{MBC} = \hat{\Delta}_t^{LSTM} + \underbrace{(\mu_{Li-Lee} - \mu_{LSTM})}_{\mathcal{B}}$$
+
+Bias vectors found:
+- Male: $\mathcal{B}_{K_t} = +0.85$ (model slightly under-predicts mortality improvement)
+- Female: $\mathcal{B}_{K_t} = +1.96$ (model significantly under-predicts female improvement)
+
+The larger female bias is consistent with the model's higher RMSE on female data — it is less confident about female mortality dynamics and tends toward conservative (less improvement) predictions.
+
+**Interpretation**: MBC with $Z=1$ (full credibility to the neural signal, anchored to the actuarial prior) produces very conservative projections — almost flat $e_0$ over 30 years. This is because the bias correction effectively neutralises the model's predicted improvement. The unconstrained AINN (without MBC) produces more optimistic and arguably more realistic projections (+1.7 to +2.9 years for males, +2.0 to +4.4 years for females).
+
+**For the paper**: We present both variants (with and without MBC) and note that the "correct" choice depends on the use case. For reserving (conservative), MBC is appropriate. For best-estimate projections, the unconstrained AINN is more informative.
+
+### 10.4 Results: Stochastic Life Expectancy Projections (2020-2050)
+
+#### Switzerland (Case Study)
+
+| Metric | Male | Female |
+|:---|:---|:---|
+| $e_0$ (2020, observed) | 80.26 | 83.58 |
+| $e_0$ (2050, AINN median) | 82.01 | 86.04 |
+| $e_0$ (2050, AINN+MBC) | 80.42 | 83.30 |
+| 95% CI (2050, AINN) | [78.21, 84.65] | [81.66, 88.31] |
+| Net gain (AINN) | +1.74 | +2.46 |
+
+#### Full Cluster Summary (AINN, without MBC)
+
+| Country | Male 2020 | Male 2050 | Gain M | Female 2020 | Female 2050 | Gain F |
+|:---|:---|:---|:---|:---|:---|:---|
+| Switzerland | 80.26 | 82.01 | +1.74 | 83.58 | 86.04 | +2.46 |
+| Sweden | 79.94 | 81.69 | +1.75 | 82.93 | 85.55 | +2.62 |
+| Norway | 80.57 | 82.25 | +1.68 | 83.27 | 85.79 | +2.52 |
+| West Germany | 78.28 | 80.28 | +2.00 | 82.20 | 85.06 | +2.86 |
+| Netherlands | 79.14 | 80.99 | +1.85 | 81.96 | 84.89 | +2.93 |
+| Japan | 80.44 | 82.16 | +1.72 | 84.89 | 86.94 | +2.05 |
+
+### 10.5 Discussion of Results
+
+**Biological plausibility**: The projected gains (+1.7 to +2.0 years for males, +2.0 to +2.9 years for females over 30 years) are conservative compared to historical rates of improvement but consistent with the post-2011 deceleration observed in the data. The model has learned the "slowdown" and projects it forward.
+
+**Sex differential**: Female gains are consistently larger than male gains (+0.7 to +1.1 years more). This reflects the model's learning that female mortality has more room for improvement in the current regime — consistent with the steeper female $K_t$ decline observed in the Li-Lee decomposition.
+
+**Convergence**: West Germany shows the largest male gain (+2.00) and Netherlands the largest female gain (+2.93), consistent with the "catch-up" dynamics observed in Project 04. Japan female has the smallest gain (+2.05) because it starts from the highest baseline (84.89) — approaching a biological ceiling.
+
+**MBC effect**: MBC produces almost flat projections (gains of +0.15 to +0.45 years). This is because the bias correction is large relative to the predicted improvement — effectively saying "the model's predicted improvement is mostly drift, not signal." This is overly conservative for a best-estimate projection but appropriate for a prudent reserving assumption.
+
+### 10.6 Comparison with Project 04
+
+| Metric | Project 04 (Total) | Project 05 (Male) | Project 05 (Female) |
+|:---|:---|:---|:---|
+| CHE $e_0$ (2020) | 81.71 | 80.26 | 83.58 |
+| CHE $e_0$ (2050) | 84.77 | 82.01 | 86.04 |
+| CHE gain | +3.06 | +1.74 | +2.46 |
+| 95% CI width | ±0.9 yrs | ±6.4 yrs | ±6.7 yrs |
+
+**Key differences**:
+1. Project 05 produces more conservative gains (+1.7/+2.5 vs +3.1). This is because the Optuna champion with lb=15 has learned the post-2011 deceleration more deeply (15 years of context vs 10).
+2. Project 05 CI are much wider (±6.4 vs ±0.9). This reflects the larger process noise in the sex-specific decomposition and the longer lookback window which amplifies uncertainty over 30 recursive steps.
+3. Project 05 provides sex-specific projections — a capability Project 04 does not have.
+
+### 10.7 Technical Note: Recursive Drift in Specific Factors
+
+During development, we attempted to use the projected country-specific factors ($k_{t,i}$) in the back-transformation. This produced biologically absurd results ($e_0$ collapsing to single digits) because the specific factors accumulated systematic drift over 30 recursive steps.
+
+The solution — fixing specific factors at their 2020 values — is consistent with the Li-Lee framework's stationarity assumption and is the standard approach in the literature. The stationarity penalty (excluded from training because it hurt RMSE) would have mitigated this drift but at the cost of one-step-ahead accuracy. This is a genuine trade-off between short-term accuracy and long-term stability that deserves discussion in the paper.
+
+---
+
+## 11. Future Work
+
+### 11.1 Multi-Rank Li-Lee (Rank-2 or Rank-3)
+The current rank-1 Li-Lee decomposition captures the dominant mortality trend but leaves a non-trivial residual. A rank-2 or rank-3 decomposition would:
+- Reduce the reconstruction bias (currently ~1 year offset from published $e_0$).
+- Provide additional features for the LSTM (e.g., 13 features for rank-2: 2 common + 12 specific).
+- Potentially capture cohort effects or age-specific dynamics missed by rank-1.
+
+This is planned as a separate experimental branch. If successful, it would require re-running Notebooks 02-04 with the expanded feature set.
+
+### 11.2 Stationarity Penalty for Long-Term Stability
+The stationarity penalty was excluded because it hurt one-step-ahead RMSE. However, the recursive drift problem in specific factors suggests it may have value for long-term forecasting stability. A future experiment could:
+- Train with stationarity penalty (accepting worse RMSE).
+- Project specific factors recursively (instead of fixing at 2020).
+- Compare long-term $e_0$ stability with the current approach.
+
+### 11.3 Multi-Step Training
+Instead of training the model to predict one step ahead and then using it recursively, train it to predict multiple steps simultaneously. This would directly optimise for the recursive forecasting task and potentially reduce drift accumulation.
