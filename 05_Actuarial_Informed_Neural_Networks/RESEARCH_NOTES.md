@@ -674,3 +674,29 @@ The stationarity penalty was excluded because it hurt one-step-ahead RMSE. Howev
 
 ### 11.3 Multi-Step Training
 Instead of training the model to predict one step ahead and then using it recursively, train it to predict multiple steps simultaneously. This would directly optimise for the recursive forecasting task and potentially reduce drift accumulation.
+
+### 11.4 True Gompertz Penalty in the Loss Function
+The current monotonicity penalty is a temporal surrogate ($\Delta K_t > 0$), not the actual Gompertz constraint ($m_{x+1} \geq m_x$ for all ages). Implementing the true Gompertz penalty requires:
+- Differentiable back-transformation from $\Delta K_t$ to $m_x$ within the training loop.
+- Using the Li-Lee formula: $\ln(m_x) = a_x + B_x K_t + b_x k_{t,i}$.
+- Penalising $\sum_x \max(0, m_x - m_{x+1})^2$ for ages 40-90.
+
+This is computationally expensive (requires storing and differentiating through the full age profile at each training step) but would produce a model with guaranteed Gompertz compliance in the projections — eliminating the data-inherited violations observed in Notebook 05.
+
+**Trade-off**: The Gompertz penalty would likely increase training time significantly and may interact with the coherence/monotonicity penalties in unpredictable ways. The current approach (surrogato + post-hoc audit) is pragmatic and defensible; the true Gompertz is the theoretically correct alternative for future exploration.
+
+### 11.5 Recursive Projection of Specific Factors
+Currently, country-specific factors are fixed at their 2020 values for the 30-year projection (Li-Lee stationarity assumption). An alternative:
+- Keep the stationarity penalty in training to control drift.
+- Project specific factors recursively with the LSTM.
+- This would allow the model to capture future country-specific dynamics (e.g., a country accelerating or decelerating relative to the cluster).
+
+The challenge is balancing the stationarity constraint (which hurts one-step RMSE by ~8%) against the forecasting stability it provides.
+
+### 11.6 Sex-Specific Architecture Enhancements
+The current binary sex indicator (0/1) is minimal. Alternatives:
+- **Learned sex embedding**: a small embedding layer that maps the sex indicator to a higher-dimensional representation, allowing the model to learn more complex sex-specific dynamics.
+- **Separate decoder heads**: shared LSTM encoder for temporal patterns, then M/F-specific dense layers for the output. This separates "what patterns exist in time" from "how do these patterns differ by sex."
+
+### 11.7 Fat-Tail Process Noise (Planned: Notebook 07)
+Replace the Gaussian process noise with Student-t or bootstrap residuals to capture potential fat-tail events (pandemics, medical breakthroughs). Compare SCR under different distributional assumptions.
