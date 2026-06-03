@@ -10,17 +10,19 @@ This repository collects five research projects at the intersection of Actuarial
 
 ## Project Index
 
-### 5 · [Actuarial-Informed Neural Networks](./05_Actuarial_Informed_Neural_Networks) 🚧
+### 5 · [Actuarial-Informed Neural Networks](./05_Actuarial_Informed_Neural_Networks)
 
 **Domain:** Multi-Population Longevity · Constrained Deep Learning · Credibility Theory · Regulatory Validation
 
-A challenger internal model that embeds actuarial domain knowledge directly into the neural network training process. Serves as an alternative to both the Li-Lee benchmark and the unconstrained LSTM framework (Project 04), with sex-specific projections (M/F) and regulatory-grade robustness.
+A challenger internal model that embeds actuarial domain knowledge directly into the neural network training process. Produces sex-specific (M/F) longevity projections for a 6-country cluster, with full regulatory compliance (SCR, stress tests, XAI).
 
-- **Constrained Loss (AINN):** Differentiable penalties for Li-Lee coherence, Gompertzian monotonicity, and stationarity — enforced during training, not verified post-hoc.
-- **MBC as Bayesian Shrinkage:** Formalisation of Mean-Bias Correction in learning-theoretic terms, connecting to credibility theory.
-- **Robustness Protocol:** Multi-seed table, rolling-window validation, and fat-tail process noise (Student-t, bootstrap).
-- **Model-Based Stress Test:** Mortality shocks translated into the ΔK_t domain and injected into the recursive forecast for FINMA/EIOPA validation.
-- **Sex-Specific Modelling:** Male and Female mortality modelled separately for production-grade L&H applicability.
+- **Constrained Loss (AINN):** Differentiable penalties for Li-Lee coherence and temporal monotonicity — enforced during training.
+- **Joint Male/Female Training:** Single model with sex indicator, doubling the effective sample size and producing coherent M/F projections.
+- **Optuna 6D Joint Optimisation:** Architecture, lookback, and constraints optimised simultaneously (100 trials). Champion: LSTM (48-32), lb=15, RMSE=6.17.
+- **Stochastic Forecasting (2020–2050):** Observation-anchored projections with dual uncertainty (MC Dropout + Li-Lee process noise). CHE Male: 80.3→82.0, CHE Female: 83.6→86.0.
+- **Regulatory Capital:** SCR (ES 99.0%) = +3.76 years (CHE Male). Reverse stress test: δ* = 45.3%.
+- **Model Stability:** Model-based stress test confirms STABLE behaviour (amplification ratio 1.02×).
+- **Documentation:** Includes [Model Passport](./05_Actuarial_Informed_Neural_Networks/MODEL_PASSPORT.md) and [Research Notes](./05_Actuarial_Informed_Neural_Networks/RESEARCH_NOTES.md).
 
 ---
 
