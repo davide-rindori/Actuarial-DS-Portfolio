@@ -25,12 +25,16 @@ Architecture (units, learning rate), temporal context (lookback window), and act
 **Runtime**: 48 minutes on Apple M1 Pro.
 
 ### 4. Regulatory-Grade Robustness
-- Multi-seed robustness (CV = 1.23%, PASS).
+- Multi-seed robustness (CV = 8.90%, PASS).
 - Lookback sensitivity analysis.
-- Rolling-window validation (Notebook 05).
+- Rolling-window validation (CV = 5.78%, PASS).
+- Gompertz monotonicity audit (structurally compliant).
+- Temporal saliency and SHAP influence mapping.
 
-### 5. True Model-Based Stress Test
-Mortality shocks translated into the ΔK_t domain and injected into the recursive forecast (Notebook 06).
+### 5. Stress Test & SCR
+- **SCR (ES 99.0%)**: +3.76 years (CHE Male), +2.92 years (CHE Female).
+- **Reverse stress test**: δ* = 45.3% (CHE Male) — critical shock threshold under SST.
+- **Model-based stress test**: STABLE (amplification ratio 1.02×, no explosive feedback).
 
 ## Project Structure
 - `data/`: Mortality data assets (HMD, same cluster as Project 04).
@@ -40,9 +44,8 @@ Mortality shocks translated into the ΔK_t domain and injected into the recursiv
     - `02_actuarial_benchmarking.ipynb`: Li-Lee sex-specific, stationarity analysis. ✓
     - `03_training_ablation_lambda.ipynb`: Joint Bayesian Optimisation, multi-seed robustness, lookback sensitivity. ✓
     - `04_stochastic_forecasting.ipynb`: MC Dropout forecasting, observation-anchored e0, MBC analysis. ✓
-    - `05_rolling_window_validation.ipynb`: Rolling-window robustness protocol.
-    - `06_model_based_stress_test.ipynb`: Shock injection in ΔK_t domain.
-    - `07_fat_tail_uncertainty_scr.ipynb`: Non-Gaussian process noise and SCR comparison.
+    - `05_xai_validation.ipynb`: Temporal saliency, SHAP, Gompertz audit, rolling-window. ✓
+    - `06_stress_test_scr.ipynb`: SCR (VaR/ES), reverse stress test, model-based stress test. ✓
 - `src/`: Modular source code (custom losses, reproducibility, styling).
 - `reports/figures/`: High-resolution visualizations.
 - `latex/`: Paper source files.
@@ -61,4 +64,4 @@ Mortality shocks translated into the ΔK_t domain and injected into the recursiv
 - **Design**: Viridis colour palette; Helvetica typography.
 
 ## Status
-🚧 In development. Notebooks 01-04 complete (data, Li-Lee, AINN training, stochastic forecasting). Proceeding to Notebook 05 (XAI & Validation).
+Pipeline complete (Notebooks 01-06). Next: Model Passport update and paper drafting.
