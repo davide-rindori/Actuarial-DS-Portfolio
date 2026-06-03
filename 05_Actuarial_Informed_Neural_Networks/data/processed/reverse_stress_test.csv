@@ -1,0 +1,13 @@
+Country,Sex,SCR (ES 99.0%),delta*,Linearity R²,10% Shock Impact,10% as % of SCR
+Switzerland,Male,3.76,45.3,0.9996,0.83,22.1
+Sweden,Male,3.854,45.5,0.9996,0.847,22.0
+Norway,Male,3.664,45.0,0.9996,0.814,22.2
+West Germany,Male,4.474,46.7,0.9995,0.957,21.4
+Netherlands,Male,4.107,46.3,0.9995,0.888,21.6
+Japan,Male,3.752,45.1,0.9997,0.831,22.2
+Switzerland,Female,2.919,48.5,0.9998,0.602,20.6
+Sweden,Female,3.223,49.9,0.9998,0.646,20.1
+Norway,Female,3.076,49.1,0.9998,0.626,20.3
+West Germany,Female,3.526,50.0,0.9997,0.705,20.0
+Netherlands,Female,3.632,50.6,0.9997,0.718,19.8
+Japan,Female,2.355,46.1,0.9999,0.511,21.7
